@@ -1,0 +1,344 @@
+--- Lab01 Requirements ---
+Lab 01. Practical Guide: Grayscale Images,
+Histogram, Histogram Equalization, and Pixel-wise
+Operations
+Cao Văn Chung
+Learning Goals
+After this lab, you will be able to:
+• Read an image from a given path and represent it as a 2D grayscale matrix.
+• Build a grayscale histogram using (1) pure NumPy and (2) a library function.
+• Perform Histogram Equalization (HE) and visualize before/after results.
+• Implement key point-wise transforms: manual thresholding, Otsu thresholding, linear intensity trans-
+form, gamma correction.
+• Understand how to map mathematical formulas into code without using classes.
+Software Requirements
+• Python 3.9+
+• NumPy
+• Matplotlib
+• OpenCV ( opencv-python) or scikit-image ( scikit-image)
+Tip: If you use a virtual environment, install packages by:
+pip install numpy matplotlib opencv-python scikit-image
+1 Step 1 — Read an Image as a Grayscale Matrix
+What we want
+A grayscale image (8-bit) is a 2D matrix:
+f ∈ {0, 1, . . . ,255}H×W
+where each entry is a pixel intensity.
+1
+Code (OpenCV) + Explanation
+import cv2
+import numpy as np
+# 1) Provide your image path here (change to your file path)
+IMG_PATH = "data/sample.png"
+# 2) Read as grayscale (IMREAD_GRAYSCALE => 2D array)
+img = cv2.imread(IMG_PATH, cv2.IMREAD_GRAYSCALE)
+# 3) Basic sanity checks
+if img is None:
+raise FileNotFoundError(f"Cannot read image at path: {IMG_PATH}")
+print("Shape (H, W):", img.shape)
+print("Dtype:", img.dtype)
+print("Min/Max:", int(img.min()), int(img.max()))
+Explanation
+• cv2.imread(..., cv2.IMREAD_GRAYSCALE) loads the image as a 2D array.
+• dtype is typically uint8 (values 0–255).
+• We verify the image exists and inspect its range.
+Optional (scikit-image) version
+from skimage import io
+import numpy as np
+IMG_PATH = "data/sample.png"
+img = io.imread(IMG_PATH, as_gray=True) # often float in [0,1]
+# convert to uint8 in [0,255] if needed
+if img.dtype != np.uint8:
+img = (255.0 * img).clip(0, 255).astype(np.uint8)
+2 Step 2 — Build the Histogram (NumPy and Library)
+2.1 Histogram Definition
+For 8-bit grayscale, the histogram is:
+h(k) = # {(x, y) | f (x, y) = k}, k = 0, . . . ,255
+A normalized histogram is:
+p(k) = h(k)
+N , N = H · W
+2.2 Pure NumPy Histogram (No Library Helper)
+import numpy as np
+# Flatten to 1D for easy counting
+pixels = img.ravel()
+2
+# Option A: bincount (fast for non-negative integers)
+hist_np = np.bincount(pixels, minlength=256) # length 256
+# Normalize to probability
+p_np = hist_np / hist_np. sum()
+print("Histogram shape:", hist_np.shape)
+print("Sum(hist):", hist_np. sum())
+Explanation
+• img.ravel() converts the 2D image into a 1D list of pixel values.
+• np.bincount counts occurrences of each intensity.
+• minlength=256 ensures we always have 256 bins (0–255).
+2.3 Histogram Using a Library (NumPy helper or OpenCV)
+import numpy as np
+# Option B: numpy histogram
+hist_lib, bin_edges = np.histogram(img, bins=256, range=(0, 256))
+# Option C: OpenCV calcHist
+import cv2
+hist_cv = cv2.calcHist([img], channels=[0], mask=None, histSize=[256], ranges=[0, 256]).ravel
+()
+print("numpy.histogram sum:", hist_lib. sum())
+print("cv2.calcHist sum:", hist_cv. sum())
+Explanation
+• np.histogram returns counts and bin edges.
+• cv2.calcHist computes the histogram with OpenCV conventions.
+2.4 Plot Image and Histogram
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 4))
+# Image
+plt.subplot(1, 2, 1)
+plt.imshow(img, cmap= "gray", vmin=0, vmax=255)
+plt.title("Input Grayscale Image")
+plt.axis("off")
+# Histogram
+plt.subplot(1, 2, 2)
+plt.plot(hist_np)
+plt.title("Histogram (NumPy bincount)")
+plt.xlabel("Intensity")
+plt.ylabel("Count")
+plt.tight_layout()
+plt.show()
+3
+3 Step 3 — Histogram Equalization (HE)
+3.1 Global HE Formula
+Let p(k) be the normalized histogram and:
+CDF(k) =
+k∑
+j=0
+p(j)
+The HE mapping is:
+s(k) = ⌊255 · CDF(k)⌋
+Then:
+g(x, y) = s(f (x, y))
+3.2 Implement HE using Pure NumPy
+import numpy as np
+# 1) Histogram + normalized
+hist = np.bincount(img.ravel(), minlength=256)
+p = hist / hist. sum()
+# 2) CDF
+cdf = np.cumsum(p) # length 256, in [0,1]
+# 3) Mapping table (LUT)
+lut = np.floor(255 * cdf).astype(np.uint8)
+# 4) Apply LUT: new image g(x,y) = lut[f(x,y)]
+img_he_np = lut[img]
+Explanation
+• We compute the CDF via np.cumsum.
+• lut is a lookup table of size 256, mapping each old intensity to a new one.
+• Applying HE becomes very fast: lut[img].
+3.3 HE using a Library (OpenCV / scikit-image)
+import cv2
+# OpenCV global histogram equalization
+img_he_cv = cv2.equalizeHist(img)
+from skimage import exposure
+import numpy as np
+# scikit-image expects float in [0,1] for many functions
+f = img.astype(np.float32) / 255.0
+img_he_sk = exposure.equalize_hist(f) # float in [0,1]
+img_he_sk_u8 = (255.0 * img_he_sk).clip(0, 255).astype(np.uint8)
+4
+3.4 Display Before/After (Grayscale)
+import matplotlib.pyplot as plt
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 3, 1)
+plt.imshow(img, cmap= "gray", vmin=0, vmax=255)
+plt.title("Original")
+plt.axis("off")
+plt.subplot(1, 3, 2)
+plt.imshow(img_he_np, cmap= "gray", vmin=0, vmax=255)
+plt.title("HE (NumPy)")
+plt.axis("off")
+plt.subplot(1, 3, 3)
+plt.imshow(img_he_cv, cmap= "gray", vmin=0, vmax=255)
+plt.title("HE (OpenCV)")
+plt.axis("off")
+plt.tight_layout()
+plt.show()
+4 Step 4 — Pixel-wise Transforms (Core Methods)
+In this section, you will implement:
+• Manual thresholding
+• Automatic thresholding (Otsu)
+• Linear intensity transform g = clip(af + b)
+• Gamma correction g = f γ
+For each method, we provide one example using (A) pure NumPy and (B) library functions.
+4.1 Manual Thresholding
+Theory
+Binary thresholding:
+g =
+{
+0, f < T
+255, f ≥ T
+(A) NumPy Implementation
+import numpy as np
+T = 128 # example threshold
+img_thr_np = np.where(img >= T, 255, 0).astype(np.uint8)
+Explanation: np.where applies the condition to every pixel.
+5
+(B) Library Implementation (OpenCV)
+import cv2
+T = 128
+_, img_thr_cv = cv2.threshold(img, T, 255, cv2.THRESH_BINARY)
+4.2 Automatic Thresholding: Otsu
+Theory (Key Idea)
+Otsu chooses T to maximize the between-class variance:
+T ∗ = arg max
+T
+σ2
+B(T )
+It works best when the histogram is bimodal.
+(A) NumPy Implementation (Otsu from Histogram)
+import numpy as np
+hist = np.bincount(img.ravel(), minlength=256).astype(np.float64)
+p = hist / hist. sum()
+omega = np.cumsum(p) # class probabilities for [0..T]
+mu = np.cumsum(p * np.arange(256)) # cumulative mean
+mu_t = mu[-1] # global mean
+# Between-class variance for all thresholds
+# sigma_b^2(T) = (mu_t * omega - mu)^2 / (omega*(1-omega))
+# Avoid division by zero with a small epsilon or masking.
+eps = 1e-12
+sigma_b2 = (mu_t * omega - mu) ** 2 / (omega * (1.0 - omega) + eps)
+T_otsu = int(np.argmax(sigma_b2))
+img_otsu_np = np.where(img >= T_otsu, 255, 0).astype(np.uint8)
+print("Otsu threshold (NumPy):", T_otsu)
+Explanation
+• We compute class probability ω0(T ) using cumulative sums.
+• We compute cumulative means eﬀiciently (no loops over pixels).
+• We evaluate σ2
+B(T ) for all T and choose the maximum.
+(B) Library Implementation (OpenCV / scikit-image)
+import cv2
+# If threshold=0 and we add THRESH_OTSU, OpenCV computes Otsu automatically
+_, img_otsu_cv = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+from skimage.filters import threshold_otsu
+import numpy as np
+T = threshold_otsu(img)
+img_otsu_sk = (img >= T).astype(np.uint8) * 255
+6
+4.3 Linear Intensity Transform (Brightness/Contrast)
+Theory
+g = clip(af + b, 0, 255)
+• a > 1: increase contrast; 0 < a < 1: decrease contrast
+• b > 0: brighten; b < 0: darken
+(A) NumPy Implementation
+import numpy as np
+a, b = 1.3, 15 # example parameters
+img_lin_np = (a * img.astype(np.float32) + b)
+img_lin_np = np.clip(img_lin_np, 0, 255).astype(np.uint8)
+Explanation
+• Convert to float before multiplication/addition to avoid overflow in uint8.
+• Clip to the valid range and cast back to uint8.
+(B) Library Implementation (OpenCV)
+import cv2
+a, b = 1.3, 15
+img_lin_cv = cv2.convertScaleAbs(img, alpha=a, beta=b)
+4.4 Gamma Correction
+Theory
+Gamma correction is typically applied on normalized intensities f ∈ [0, 1]:
+g = f γ
+• γ < 1: brightens dark regions
+• γ > 1: darkens bright regions
+(A) NumPy Implementation
+import numpy as np
+gamma = 0.7 # example
+f = img.astype(np.float32) / 255.0 # normalize to [0,1]
+g = np.power(f, gamma) # apply gamma
+img_gamma_np = (255.0 * g).clip(0, 255).astype(np.uint8)
+Explanation
+• Always normalize to [0, 1] for stable gamma transformation.
+• Convert back to uint8 for display and saving.
+7
+(B) Library Implementation (scikit-image)
+from skimage import exposure
+import numpy as np
+gamma = 0.7
+f = img.astype(np.float32) / 255.0
+g = exposure.adjust_gamma(f, gamma=gamma) # returns float in [0,1]
+img_gamma_sk = (255.0 * g).clip(0, 255).astype(np.uint8)
+5 Step 5 — Visualize Results in One Figure
+import matplotlib.pyplot as plt
+results = [
+("Original", img),
+("Manual Thr", img_thr_np),
+("Otsu (NumPy)", img_otsu_np),
+("Linear", img_lin_np),
+("Gamma", img_gamma_np),
+("HE (NumPy)", img_he_np),
+]
+plt.figure(figsize=(12, 8))
+for i, (name, im) in enumerate(results, 1):
+plt.subplot(2, 3, i)
+plt.imshow(im, cmap= "gray", vmin=0, vmax=255)
+plt.title(name)
+plt.axis("off")
+plt.tight_layout()
+plt.show()
+6 Exercises (Suggested Self-Practice)
+Implement the following transforms using:
+1. NumPy-only (vectorized operations, no explicit Python loops over pixels)
+2. A library function (OpenCV or scikit-image)
+Exercise A — Negative / Inversion
+g = 255 − f
+Hint: In NumPy, subtraction is trivial. In OpenCV, you can do 255 - img as well.
+Exercise B — Log Transform
+g = c · log(1 + f )
+Hint: Normalize f first to [0, 1], then rescale back.
+8
+Exercise C — Contrast Stretching (Percentile-based)
+Let P2 and P98 be the 2nd and 98th percentiles:
+g = clip
+( f − P2
+P98 − P2
+, 0, 1
+)
+Hint: Use np.percentile. In scikit-image, see exposure.rescale_intensity.
+Exercise D — Multi-level Thresholding
+Choose two thresholds T1 < T 2:
+g =
+
+
+
+0, f < T 1
+127, T 1 ≤ f < T 2
+255, f ≥ T2
+Hint: Use chained np.where or boolean masks.
+Exercise E — Adaptive Thresholding (Local)
+Try OpenCV adaptive thresholding ( ADAPTIVE_THRESH_MEAN_C and GAUSSIAN_C). Compare results under
+non-uniform illumination.
+7 Additional Homeworks
+Practice requirements : All exercises in the computer vision course will be work on Google Colab,
+and the programming language used will be Python. Students need to have basic knowledge of Python
+programming to complete this course.
+Test programming knowledge : The histogram represents the frequency distribution of pixel inten-
+sity values in an image. Without using any external libraries, write a program that calculates the histogram
+of a given 8-bit grayscale image. Display the results and compare them with the results calculated using
+a library for histogram computation.
+Problem 1 (Gray level modification) : Create an function GrayLevelModification 1, that modifies
+the values of an 8-bit gray-scale input image according to the function
+s = 16 × √r
+where r is the input intensity and s is the processed intensity. The factor of 16 guarantees that the result
+will be in the range 0 to 255. Use this function to modify any currently open 8-bit gray-scale image.
+Problem 2 (Thresholding) : Create a function called MedianThreshold that sets the threshold value
+to the median of the histogram. Use this function to threshold an input image 8-bit grayscale image.
+Definition: The median m is the value that satisfies P (x < m ) = P (x > m ), in other words, half of
+the intensity values are less and half of the values are greater than m.
+Problem 3 (Power Transform) : Create an function PowerTransform which performs a power law
+transformation on an image. This function should an 8-bit grayscale image and the gamma value (as a vari-
+able you can modify in your program) to transform the image. Remember that power law transformations
+are achieved using the simple formula:
+s = c × rγ
+where s is the processed pixel value, r is the original pixel value, γ is the parameter controlling the power
+law transformation and c is a constant usually set to 1. Try this new function out on the following images
+(spine.jpg and runway.jpg ), experimenting with different values for γ. In the comments of your function,
+state what values of γ worked best for each spine.jpg and for runway.jpg .
+1for example in Matlab/Octave this will be GrayLevelModification.m
+9
+Submission (Recommended)
+• A short report (1–2 pages) including:
+– the original image,
+– histograms (before/after HE),
+– results of each transform,
+– brief comments: which method worked best and why.
+• Your Python script or notebook (no class-based code required).
+10
