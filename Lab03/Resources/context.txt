@@ -1,0 +1,787 @@
+--- Lab03 Requirements ---
+LAB 03. SPATIAL/FREQUENCY DOMAIN -
+FILTERs & THEIR APPLICATIONS
+Computer Vision
+2026
+Contents
+1 Objectives 3
+2 Prerequisites (What you already learned) 3
+3 Software Setup and Utilities 3
+3.1 Required libraries . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+3.2 Display helper . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+3.3 Load an image (grayscale) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+4 Module 1: Discrete Fourier Transform (DFT) and Frequency Visualization 4
+4.1 Discrete Fourier Transform (2D) . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+4.2 Interpretation (what to look for) . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+4.3 FFT using NumPy (practical) . . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+4.4 Manual DFT (NumPy-from-scratch, for understanding) . . . . . . . . . . . . . . 5
+4.5 Exercises (after Module 1) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+5 Module 2: Frequency-Domain Filtering (Low-pass & High-pass) 6
+5.1 Concept . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+5.2 Circular Ideal Low-pass Filter (LPF) . . . . . . . . . . . . . . . . . . . . . . . . 6
+5.3 Circular Ideal High-pass Filter (HPF) . . . . . . . . . . . . . . . . . . . . . . . . 6
+5.4 Implementation (NumPy) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+5.5 Exercises (after Module 2) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+6 Module 3: Discrete Convolution (Spatial Filtering Core) 7
+6.1 Discrete Convolution Formula . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+6.2 Algorithm steps . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+6.3 NumPy-from-scratch convolution . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+6.4 OpenCV reference . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+6.5 Exercises (after Module 3) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+7 Module 4: Mean and Gaussian Filters (Smoothing / Denoising Basics) 9
+7.1 Mean (A verage) Filter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+7.2 Gaussian Filter . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+7.3 Module 5: Median Filtering for Denoising . . . . . . . . . . . . . . . . . . . . . 9
+7.3.1 Algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+7.3.2 Pipeline . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+1
+7.3.3 NumPy Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+7.3.4 OpenCV Version . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+7.4 Implementation (NumPy + OpenCV) and Examples . . . . . . . . . . . . . . . 10
+7.5 Exercises (after Module 4) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+8 Module 5: Denoising Pipelines (Mean vs Gaussian vs Median) 11
+8.1 Noise types (practical) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+8.2 Add synthetic noise (for experiments) . . . . . . . . . . . . . . . . . . . . . . . . 11
+8.3 Median filter (pipeline + meaning) . . . . . . . . . . . . . . . . . . . . . . . . . 11
+8.4 Median filter implementation (NumPy-from-scratch) . . . . . . . . . . . . . . . 12
+8.5 Denoising comparison experiment . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+8.6 Exercises (after Module 5) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+9 Module 6: Sharpening (Laplacian & Unsharp Masking) 13
+9.1 Laplacian operator . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+9.2 Laplacian sharpening formula . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+9.3 Implementation (NumPy convolution + OpenCV reference) . . . . . . . . . . . 13
+9.4 Unsharp masking (optional but recommended) . . . . . . . . . . . . . . . . . . . 14
+9.5 Exercises (after Module 6) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+10 Module 7: Gradient and Sobel Edges (Using Convolution) 14
+10.1 Sobel kernels . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+10.2 Pipeline (Sobel gradient) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+10.3 Implementation (NumPy convolution) . . . . . . . . . . . . . . . . . . . . . . . 15
+10.4 Exercises (after Module 7) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+11 Module 8: Canny Edge Detection (Detailed + Code) 15
+11.1 Step 1: Gaussian smoothing . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+11.2 Step 2: Compute gradients (Sobel via convolution) . . . . . . . . . . . . . . . . 16
+11.3 Step 3: Non-maximum suppression (NMS) . . . . . . . . . . . . . . . . . . . . . 16
+11.4 Step 4: Double threshold (strong vs weak edges) . . . . . . . . . . . . . . . . . . 17
+11.5 Step 5: Edge tracking by hysteresis . . . . . . . . . . . . . . . . . . . . . . . . . 18
+11.6 OpenCV reference for comparison . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+11.7 Exercises (after Module 8) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+12 Module 9: Spatial vs Frequency Filtering (Linking the Two Views) 19
+12.1 Convolution theorem . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+12.2 Suggested experiment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+12.3 Exercises (after Module 9) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+13 Mini Project (Integrating Everything) 19
+13.1 Project goal . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+13.2 Recommended pipeline . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+13.3 Deliverables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+14 Report Submission Requirements 20
+2
+1 Objectives
+This lab focuses on filtering in spatial and frequency domains for grayscale images. After
+completing the lab, you should be able to:
+• Visualize a grayscale image in both spatial and frequency domains.
+• Implement discrete convolution manually using NumPy.
+• Understand and apply low-pass and high-pass filtering in the frequency domain.
+• Apply common filters (mean, Gaussian, median, Sobel, Laplacian) for:
+– Denoising
+– Sharpening
+– Edge detection
+• Implement key parts of the Canny edge detector : non-maximum suppression, double
+threshold, and hysteresis.
+• Compare NumPy-from-scratch implementations with OpenCV reference implemen-
+tations.
+2 Prerequisites (What you already learned)
+You are expected to know:
+• Grayscale image representation (2D matrix)
+• Histogram and histogram equalization
+• Point/pixel operations (brightness/contrast adjustments)
+• Arithmetic and logical operations on images
+• Basic understanding of spatial vs frequency domains (overview level)
+3 Software Setup and Utilities
+3.1 Required libraries
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+3.2 Display helper
+def show_gray(title, img):
+plt.figure(figsize=(5,4))
+plt.imshow(img, cmap= 'gray')
+plt.title(title)
+plt.axis('off')
+plt.show()
+3
+3.3 Load an image (grayscale)
+img = cv2.imread( "cameraman.tif", cv2.IMREAD_GRAYSCALE)
+show_gray("Original␣image", img)
+4 Module 1: Discrete Fourier Transform (DFT) and Fre-
+quency Visualization
+4.1 Discrete Fourier Transform (2D)
+For an image of size M × N , the 2D DFT is:
+F (u, v) =
+M −1∑
+x=0
+N −1∑
+y=0
+f (x, y) e−j2π( ux
+M + vy
+N )
+Inverse DFT:
+f (x, y) = 1
+M N
+M −1∑
+u=0
+N −1∑
+v=0
+F (u, v) ej2π( ux
+M + vy
+N )
+4.2 Interpretation (what to look for)
+• F (u, v) contains frequency components .
+• Low frequencies (near the spectrum center after shifting) correspond to smooth regions
+/ illumination.
+• High frequencies correspond to edges, fine textures, and noise.
+• We often visualize the magnitude spectrum :
+|F (u, v)| =
+√
+ℜ(F )2 + ℑ(F )2
+and use log scaling for visibility:
+S(u, v) = log(1 + |F (u, v)|)
+4.3 FFT using NumPy (practical)
+Algorithm steps:
+1. Compute FFT: F = FFT2(f )
+2. Shift zero-frequency to the center: Fs = ﬀtshift(F )
+3. Compute magnitude spectrum: S = log(1 + |Fs|)
+4. Visualize S
+F = np.fft.fft2(img)
+Fs = np.fft.fftshift(F)
+S = np.log(1 + np. abs(Fs))
+show_gray("Magnitude␣spectrum␣(log)", S)
+4
+4.4 Manual DFT (NumPy-from-scratch, for understanding)
+Important: This is very slow ( O(M 2N 2)). Use a small image or downsample first.
+Algorithm steps:
+1. For each frequency index (u, v), sum over all spatial positions (x, y)
+2. Multiply by complex exponential
+def dft2d(image):
+image = image.astype(np.float64)
+M, N = image.shape
+F = np.zeros((M, N), dtype=np.complex128)
+for u in range(M):
+for v in range(N):
+s = 0.0 + 0.0j
+for x in range(M):
+for y in range(N):
+angle = -2j*np.pi*(u*x/M + v*y/N)
+s += image[x, y] * np.exp(angle)
+F[u, v] = s
+return F
+Suggested usage (downsample first):
+small = cv2.resize(img, (64,64), interpolation=cv2.INTER_AREA)
+F_manual = dft2d(small)
+S_manual = np.log(1 + np. abs(np.fft.fftshift(F_manual)))
+show_gray("Manual␣DFT␣spectrum␣(64x64)", S_manual)
+4.5 Exercises (after Module 1)
+Exercise 1.1 (Spectrum comparison)
+Pipeline:
+1. Choose 2 different grayscale images: one smooth (low texture) and one highly textured.
+2. Compute and display the magnitude spectrum (FFT).
+Required outputs:
+• Two input images
+• Two magnitude spectra
+Questions:
+• Which spectrum contains stronger high-frequency components? Why?
+• Where is the DC component located in the shifted spectrum? What does it represent?
+5
+5 Module 2: Frequency-Domain Filtering (Low-pass &
+High-pass)
+5.1 Concept
+Filtering in the frequency domain modifies the spectrum:
+G(u, v) = F (u, v) · H(u, v)
+Then the filtered image is reconstructed via inverse FFT.
+5.2 Circular Ideal Low-pass Filter (LPF)
+Mask definition: Let D(u, v) =
+√
+(u − u0)2 + (v − v0)2 be distance from the spectrum center
+(u0, v0).
+HLP (u, v) =
+{
+1 D(u, v) ≤ D0
+0 otherwise
+Algorithm steps (LPF):
+1. Compute Fs = ﬀtshift(ﬀt2(f ))
+2. Create circular mask HLP
+3. Multiply: Gs = Fs · HLP
+4. Inverse shift and inverse FFT to reconstruct image
+5.3 Circular Ideal High-pass Filter (HPF)
+High-pass keeps high frequencies:
+HHP (u, v) = 1 − HLP (u, v)
+Algorithm steps (HPF): same as LPF but with HHP .
+5.4 Implementation (NumPy)
+def fft_spectrum(image):
+F = np.fft.fft2(image)
+Fs = np.fft.fftshift(F)
+S = np.log(1 + np. abs(Fs))
+return F, Fs, S
+def circular_lpf_mask(shape, r):
+M, N = shape
+crow, ccol = M//2, N//2
+Y, X = np.ogrid[:M, :N]
+dist2 = (Y - crow)**2 + (X - ccol)**2
+mask = (dist2 <= r*r).astype(np.float64)
+return mask
+def apply_freq_filter(image, mask):
+6
+F = np.fft.fft2(image)
+Fs = np.fft.fftshift(F)
+Gs = Fs * mask
+g = np.fft.ifft2(np.fft.ifftshift(Gs))
+g = np. abs(g)
+return g, Fs, Gs
+F, Fs, S = fft_spectrum(img)
+show_gray("Original␣Spectrum␣(log)", S)
+r = 30
+Hlp = circular_lpf_mask(img.shape, r)
+Hhp = 1 - Hlp
+glp, Fs, Gslp = apply_freq_filter(img, Hlp)
+ghp, _, Gshp = apply_freq_filter(img, Hhp)
+show_gray("LPF␣result␣(spatial)", glp)
+show_gray("HPF␣result␣(spatial)", ghp)
+show_gray("LPF␣spectrum␣(log)", np.log(1 + np. abs(Gslp)))
+show_gray("HPF␣spectrum␣(log)", np.log(1 + np. abs(Gshp)))
+5.5 Exercises (after Module 2)
+Exercise 2.1 (Effect of cutoff radius)
+Pipeline:
+1. Apply LPF with r ∈ {10, 30, 60}.
+2. Apply HPF with the same radii.
+Required outputs:
+• 6 filtered images (3 LPF + 3 HPF)
+• Spectra of the filtered results
+Questions:
+• How does increasing r change blur strength in LPF?
+• Why does HPF emphasize edges and noise?
+6 Module 3: Discrete Convolution (Spatial Filtering Core)
+6.1 Discrete Convolution Formula
+For a kernel size (2k + 1) × (2k + 1):
+g(x, y) =
+k∑
+i=−k
+k∑
+j=−k
+f (x − i, y − j) h(i, j)
+7
+6.2 Algorithm steps
+1. Choose kernel h.
+2. Slide kernel over image.
+3. Multiply element-wise and sum.
+4. Store the output pixel.
+6.3 NumPy-from-scratch convolution
+We use zero padding to simplify boundaries.
+def conv2d_same(image, kernel):
+image = image.astype(np.float64)
+kernel = kernel.astype(np.float64)
+kh, kw = kernel.shape
+assert kh % 2 == 1 and kw % 2 == 1
+pad_h, pad_w = kh//2, kw//2
+padded = np.pad(image, ((pad_h,pad_h),(pad_w,pad_w)), mode= 'constant')
+H, W = image.shape
+out = np.zeros((H, W), dtype=np.float64)
+for i in range(H):
+for j in range(W):
+region = padded[i:i+kh, j:j+kw]
+out[i, j] = np. sum(region * kernel)
+return out
+6.4 OpenCV reference
+# OpenCV reference (fast)
+out_cv = cv2.filter2D(img, -1, kernel)
+6.5 Exercises (after Module 3)
+Exercise 3.1 (Convolution correctness)
+Pipeline:
+1. Pick a kernel (e.g., mean 3x3).
+2. Filter the image with your conv2d_same.
+3. Filter the image with cv2.filter2D.
+4. Compute absolute difference image: |gnumpy − gopencv|.
+Required outputs:
+• Output from NumPy convolution
+• Output from OpenCV convolution
+8
+• Difference visualization
+Questions:
+• Are there differences near borders? Why?
+• How does padding choice affect the result?
+7 Module 4: Mean and Gaussian Filters (Smoothing /
+Denoising Basics)
+7.1 Mean (A verage) Filter
+Kernel example (3x3):
+h = 1
+9
+
+
+1 1 1
+1 1 1
+1 1 1
+
+
+Meaning: local averaging reduces noise but blurs edges.
+7.2 Gaussian Filter
+Continuous Gaussian:
+G(x, y) = 1
+2πσ 2 exp
+(
+− x2 + y2
+2σ2
+)
+Discrete kernels approximate this shape; weights are larger near the center. Example kernel:
+1
+16
+
+
+1 2 1
+2 4 2
+1 2 1
+
+
+Meaning: Gaussian smoothing is often better than mean filter for preserving structures.
+7.3 Module 5: Median Filtering for Denoising
+7.3.1 Algorithm
+Median filtering replaces the pixel value by the median value of its neighborhood.
+7.3.2 Pipeline
+1. Select window size k × k
+2. Extract neighborhood
+3. Sort pixel values
+4. Replace center pixel with median
+9
+7.3.3 NumPy Implementation
+def median_filter(image, k):
+pad = k//2
+padded = np.pad(image, pad)
+output = np.zeros_like(image)
+for i in range(image.shape[0]):
+for j in range(image.shape[1]):
+region = padded[i:i+k, j:j+k]
+output[i,j] = np.median(region)
+return output
+7.3.4 OpenCV Version
+denoised = cv2.medianBlur(img,5)
+Remark: Median Filter is appropriated for pepper-noise.
+7.4 Implementation (NumPy + OpenCV) and Examples
+# Mean filter (NumPy)
+k_mean = np.ones((5,5), dtype=np.float64) / 25.0
+mean_np = conv2d_same(img, k_mean)
+# Mean filter (OpenCV)
+mean_cv = cv2.blur(img, (5,5))
+show_gray("Mean␣filter␣(NumPy,␣5x5)", mean_np)
+show_gray("Mean␣filter␣(OpenCV,␣5x5)", mean_cv)
+# Gaussian filter (OpenCV)
+gauss_cv = cv2.GaussianBlur(img, (5,5), 1.0)
+show_gray("Gaussian␣blur␣(OpenCV,␣k=5,␣sigma=1.0)", gauss_cv)
+# OPTIONAL: demonstrate multiple sigmas
+for sigma in [0.5, 1.0, 2.0]:
+g = cv2.GaussianBlur(img, (5,5), sigma)
+show_gray(f"Gaussian␣blur␣sigma={sigma}", g)
+7.5 Exercises (after Module 4)
+Exercise 4.1 (Smoothing strength and edge loss)
+Pipeline:
+1. Apply mean filter with window sizes 3 × 3, 5 × 5, 9 × 9.
+2. Apply Gaussian filter with σ ∈ {0.5, 1.0, 2.0}.
+10
+Required outputs:
+• A grid visualization comparing all smoothing results
+Questions:
+• Which method preserves edges better (mean vs Gaussian) at similar smoothing strength?
+• How does increasing window size / σ change the image?
+8 Module 5: Denoising Pipelines (Mean vs Gaussian vs
+Median)
+8.1 Noise types (practical)
+• Gaussian noise : additive, affects many pixels slightly.
+• Salt-and-pepper noise : impulse noise, pixels become 0 or 255.
+8.2 Add synthetic noise (for experiments)
+def add_gaussian_noise(image, sigma=20):
+noise = np.random.normal(0, sigma, image.shape)
+noisy = image.astype(np.float64) + noise
+return np.clip(noisy, 0, 255).astype(np.uint8)
+def add_salt_pepper(image, prob=0.02):
+out = image.copy()
+rnd = np.random.rand(*image.shape)
+out[rnd < prob/2] = 0
+out[rnd > 1 - prob/2] = 255
+return out
+noisy_g = add_gaussian_noise(img, sigma=25)
+noisy_sp = add_salt_pepper(img, prob=0.03)
+show_gray("Gaussian␣noisy", noisy_g)
+show_gray("Salt␣&␣pepper␣noisy", noisy_sp)
+8.3 Median filter (pipeline + meaning)
+Pipeline steps:
+1. Choose window size k × k (odd k).
+2. For each pixel, collect neighborhood values.
+3. Replace the center pixel with the median.
+Why median works well? It is robust to outliers (impulse noise).
+11
+8.4 Median filter implementation (NumPy-from-scratch)
+def median_filter(image, k=5):
+image = image.astype(np.float64)
+pad = k//2
+padded = np.pad(image, ((pad,pad),(pad,pad)), mode= 'edge')
+H, W = image.shape
+out = np.zeros((H, W), dtype=np.float64)
+for i in range(H):
+for j in range(W):
+region = padded[i:i+k, j:j+k]
+out[i, j] = np.median(region)
+return np.clip(out, 0, 255).astype(np.uint8)
+8.5 Denoising comparison experiment
+Pipeline:
+1. Create noisy images (Gaussian and salt-pepper).
+2. Denoise using:
+• Mean filter (NumPy/OpenCV)
+• Gaussian filter (OpenCV)
+• Median filter (NumPy/OpenCV)
+3. Visualize and compare results.
+# --- Gaussian noise denoising ---
+mean_g = cv2.blur(noisy_g, (5,5))
+gauss_g = cv2.GaussianBlur(noisy_g, (5,5), 1.0)
+med_g = cv2.medianBlur(noisy_g, 5)
+show_gray("Noisy␣(Gaussian)", noisy_g)
+show_gray("Mean␣denoise␣(Gaussian␣noise)", mean_g)
+show_gray("Gaussian␣denoise␣(Gaussian␣noise)", gauss_g)
+show_gray("Median␣denoise␣(Gaussian␣noise)", med_g)
+# --- Salt & pepper denoising ---
+mean_sp = cv2.blur(noisy_sp, (5,5))
+gauss_sp = cv2.GaussianBlur(noisy_sp, (5,5), 1.0)
+med_sp = cv2.medianBlur(noisy_sp, 5)
+show_gray("Noisy␣(Salt&Pepper)", noisy_sp)
+show_gray("Mean␣denoise␣(S&P)", mean_sp)
+show_gray("Gaussian␣denoise␣(S&P)", gauss_sp)
+show_gray("Median␣denoise␣(S&P)", med_sp)
+12
+8.6 Exercises (after Module 5)
+Exercise 5.1 (Denoising report)
+Required outputs:
+• A figure grid comparing the three denoisers on two noise types.
+Questions:
+• For salt-and-pepper noise, why does median outperform mean/Gaussian in many cases?
+• For Gaussian noise, which filter gives the best trade-off between smoothing and detail
+preservation?
+9 Module 6: Sharpening (Laplacian & Unsharp Mask-
+ing)
+9.1 Laplacian operator
+Continuous:
+∇2f = ∂2f
+∂x2 + ∂2f
+∂y 2
+Discrete kernel example (4-neighborhood):
+h =
+
+
+0 1 0
+1 −4 1
+0 1 0
+
+
+9.2 Laplacian sharpening formula
+g = f − λ (∇2f )
+where λ > 0 controls sharpening strength.
+9.3 Implementation (NumPy convolution + OpenCV reference)
+k_lap = np.array([[0,1,0],
+[1,-4,1],
+[0,1,0]], dtype=np.float64)
+lap_np = conv2d_same(img, k_lap)
+sharp_np = img.astype(np.float64) - 0.7 * lap_np
+sharp_np = np.clip(sharp_np, 0, 255).astype(np.uint8)
+lap_cv = cv2.Laplacian(img, cv2.CV_64F)
+sharp_cv = np.clip(img.astype(np.float64) - 0.7*lap_cv, 0, 255).astype(np.uint8)
+show_gray("Laplacian␣(NumPy␣conv)", np. abs(lap_np))
+show_gray("Sharpened␣(NumPy)", sharp_np)
+show_gray("Sharpened␣(OpenCV␣Laplacian)", sharp_cv)
+13
+9.4 Unsharp masking (optional but recommended)
+Idea: add back the high-frequency component.
+g = f + k(f − fblur)
+where fblur is typically Gaussian-blurred.
+blur = cv2.GaussianBlur(img, (5,5), 1.0)
+mask = img.astype(np.float64) - blur.astype(np.float64)
+unsharp = img.astype(np.float64) + 1.2*mask
+unsharp = np.clip(unsharp, 0, 255).astype(np.uint8)
+show_gray("Gaussian␣blur", blur)
+show_gray("High-frequency␣mask␣(f␣-␣f_blur)", np. abs(mask))
+show_gray("Unsharp␣masking␣result", unsharp)
+9.5 Exercises (after Module 6)
+Exercise 6.1 (Sharpening comparison)
+Pipeline:
+1. Apply Laplacian sharpening with λ ∈ {0.3, 0.7, 1.2}.
+2. Apply unsharp masking with k ∈ {0.5, 1.0, 1.5} and Gaussian blur fixed.
+Required outputs:
+• A grid of sharpened results for each parameter setting.
+Questions:
+• Which method amplifies noise more strongly?
+• At what parameter value do you start seeing artifacts/over-sharpening?
+10 Module 7: Gradient and Sobel Edges (Using Convo-
+lution)
+10.1 Sobel kernels
+Gx =
+
+
+−1 0 1
+−2 0 2
+−1 0 1
+
+ , G y =
+
+
+−1 −2 −1
+0 0 0
+1 2 1
+
+
+10.2 Pipeline (Sobel gradient)
+1. Convolve image with Gx and Gy to obtain Sx and Sy.
+2. Magnitude:
+G =
+√
+S2
+x + S2
+y
+3. Direction:
+θ = tan −1(Sy/Sx)
+14
+10.3 Implementation (NumPy convolution)
+Gx = np.array([[-1,0,1],
+[-2,0,2],
+[-1,0,1]], dtype=np.float64)
+Gy = np.array([[-1,-2,-1],
+[0,0,0],
+[1,2,1]], dtype=np.float64)
+Sx = conv2d_same(img, Gx)
+Sy = conv2d_same(img, Gy)
+mag = np.sqrt(Sx**2 + Sy**2)
+mag = np.clip(mag, 0, 255).astype(np.uint8)
+theta = np.arctan2(Sy, Sx) # radians
+show_gray("Sobel␣|Gx|␣(NumPy␣conv)", np.clip(np. abs(Sx),0,255).astype(np.uint8))
+show_gray("Sobel␣|Gy|␣(NumPy␣conv)", np.clip(np. abs(Sy),0,255).astype(np.uint8))
+show_gray("Gradient␣magnitude", mag)
+10.4 Exercises (after Module 7)
+Exercise 7.1 (Thresholding Sobel)
+Pipeline:
+1. Compute gradient magnitude using Sobel.
+2. Create edge maps using thresholds T ∈ {30, 60, 90}:
+E(x, y) =
+{
+1 G(x, y) ≥ T
+0 otherwise
+Required outputs:
+• Gradient magnitude
+• Three binary edge maps
+Questions:
+• How does threshold affect edge continuity and noise?
+• Which threshold seems most appropriate for your image? Why?
+11 Module 8: Canny Edge Detection (Detailed + Code)
+Canny is designed to produce thin, clean, and well-connected edges. It consists of 6 main
+steps.
+15
+11.1 Step 1: Gaussian smoothing
+Purpose: reduce noise before computing gradients (otherwise noise creates false edges).
+Pipeline:
+1. Apply Gaussian filter Is = Gσ ∗ I
+I = img.astype(np.float64)
+I_s = cv2.GaussianBlur(img, (5,5), 1.0).astype(np.float64)
+show_gray("Canny␣Step␣1:␣Smoothed␣image", I_s.astype(np.uint8))
+11.2 Step 2: Compute gradients (Sobel via convolution)
+Purpose: find intensity changes and their directions.
+Pipeline:
+1. Compute Sx = Is ∗ Gx, Sy = Is ∗ Gy
+2. Magnitude G = √S2
+x + S2
+y
+3. Direction θ = arctan 2(Sy, Sx)
+Sx = conv2d_same(I_s, Gx)
+Sy = conv2d_same(I_s, Gy)
+G = np.sqrt(Sx**2 + Sy**2)
+G = (G / (G. max() + 1e-9)) * 255.0 # normalize for visualization
+theta = np.arctan2(Sy, Sx)
+show_gray("Canny␣Step␣2:␣Gradient␣magnitude␣(normalized)", G.astype(np.uint8))
+11.3 Step 3: Non-maximum suppression (NMS)
+Purpose: thin edges by keeping only local maxima along gradient direction.
+Key idea: For each pixel, look in the gradient direction and compare with two neighbors.
+Keep it only if it is greater than or equal to both neighbors.
+Angle quantization: directions are grouped into 4 cases:
+0◦, 45◦, 90◦, 135◦
+def non_maximum_suppression(G, theta):
+M, N = G.shape
+Z = np.zeros((M, N), dtype=np.float64)
+angle = theta * 180.0 / np.pi
+angle[angle < 0] += 180.0
+for i in range(1, M-1):
+for j in range(1, N-1):
+q = 0.0
+r = 0.0
+16
+# 0 degrees (horizontal edge -> compare left/right)
+if (0 <= angle[i,j] < 22.5) or (157.5 <= angle[i,j] <= 180):
+q = G[i, j+1]
+r = G[i, j-1]
+# 45 degrees
+elif (22.5 <= angle[i,j] < 67.5):
+q = G[i+1, j-1]
+r = G[i-1, j+1]
+# 90 degrees (vertical edge -> compare up/down)
+elif (67.5 <= angle[i,j] < 112.5):
+q = G[i+1, j]
+r = G[i-1, j]
+# 135 degrees
+elif (112.5 <= angle[i,j] < 157.5):
+q = G[i-1, j-1]
+r = G[i+1, j+1]
+if (G[i,j] >= q) and (G[i,j] >= r):
+Z[i,j] = G[i,j]
+else:
+Z[i,j] = 0.0
+return Z
+NMS = non_maximum_suppression(G, theta)
+show_gray("Canny␣Step␣3:␣Non-maximum␣suppression", np.clip(NMS,0,255).astype(np.
+uint8))
+11.4 Step 4: Double threshold (strong vs weak edges)
+Purpose: classify edges into:
+• Strong edges: definitely edges ( ≥ Thigh)
+• Weak edges: potential edges ( Tlow ≤ · < T high)
+• Non-edges: < T low
+def double_threshold(img, t_low, t_high, weak=50, strong=255):
+res = np.zeros_like(img, dtype=np.uint8)
+strong_i, strong_j = np.where(img >= t_high)
+weak_i, weak_j = np.where((img >= t_low) & (img < t_high))
+res[strong_i, strong_j] = strong
+res[weak_i, weak_j] = weak
+return res
+17
+DT = double_threshold(NMS, t_low=30, t_high=80)
+show_gray("Canny␣Step␣4:␣Double␣threshold␣(strong=255,␣weak=50)", DT)
+11.5 Step 5: Edge tracking by hysteresis
+Purpose: keep weak edges only if they are connected to strong edges.
+Rule: A weak pixel becomes strong if any of its 8 neighbors is strong; otherwise it is
+removed.
+def hysteresis(img, weak=50, strong=255):
+M, N = img.shape
+out = img.copy()
+for i in range(1, M-1):
+for j in range(1, N-1):
+if out[i,j] == weak:
+# 8-connected neighborhood
+if np.any(out[i-1:i+2, j-1:j+2] == strong):
+out[i,j] = strong
+else:
+out[i,j] = 0
+return out
+HYS = hysteresis(DT)
+show_gray("Canny␣Step␣5:␣Hysteresis␣(final␣edges)", HYS)
+11.6 OpenCV reference for comparison
+edges_cv = cv2.Canny(img, 50, 150)
+show_gray("OpenCV␣Canny␣result", edges_cv)
+11.7 Exercises (after Module 8)
+Exercise 8.1 (Parameter study)
+Pipeline:
+1. Implement the full Canny pipeline (Steps 1–5).
+2. Try at least 3 settings of (Tlow, Thigh):
+(20, 60), (30, 80), (50, 120)
+3. Compare your results with OpenCV Canny.
+Required outputs:
+• NMS image
+• Double threshold map (strong/weak)
+• Final edges after hysteresis
+18
+• OpenCV edges
+Questions:
+• How do thresholds affect edge continuity and noise sensitivity?
+• Why does hysteresis improve connectivity?
+• Where do differences between your implementation and OpenCV come from?
+12 Module 9: Spatial vs Frequency Filtering (Linking
+the Two Views)
+12.1 Convolution theorem
+Spatial convolution corresponds to multiplication in frequency domain:
+g(x, y) = f (x, y) ∗ h(x, y) ⇐ ⇒ G(u, v) = F (u, v) · H(u, v)
+12.2 Suggested experiment
+Goal: Compare Gaussian smoothing in two ways:
+• Spatial: GaussianBlur
+• Frequency: multiply by a low-pass mask
+12.3 Exercises (after Module 9)
+Exercise 9.1 (Spatial vs frequency smoothing)
+Pipeline:
+1. Apply GaussianBlur in spatial domain.
+2. Apply LPF in frequency domain with radius chosen to produce similar blur strength.
+3. Compare outputs.
+Required outputs:
+• Spatial Gaussian result
+• Frequency LPF result
+• Difference image
+Questions:
+• Do the two results look identical? If not, why?
+• Which method is easier to control intuitively for smoothing?
+13 Mini Project (Integrating Everything)
+13.1 Project goal
+Build a simple image enhancement pipeline using the learned modules.
+19
+13.2 Recommended pipeline
+1. Add noise to an image (choose Gaussian or salt-pepper).
+2. Denoise (choose one among mean/Gaussian/median).
+3. Sharpen (Laplacian or unsharp masking).
+4. Detect edges (Sobel thresholding or Canny).
+13.3 Deliverables
+• Code (Notebook or Python script)
+• A visualization grid showing:
+– Original
+– Noisy
+– Denoised
+– Sharpened
+– Edge map
+• Short written analysis answering:
+– Which denoiser works best for your noise type? Why?
+– Which sharpening method produces fewer artifacts? Why?
+– How do parameter changes affect the edge map?
+14 Report Submission Requirements
+Your submission must include:
+• Source code (Notebook or Python files)
+• All required visual outputs for each exercise
+• Answers to the analysis questions
+20
+
+--- Lab02 Structure ---
+Markdown 0: # BÀI THỰC HÀNH 02. CÁC PHÉP TOÁN SỐ HỌC & LOGIC - TÍCH CHẬP 2D
+
+## 0. Cài đặt Môi trường & Các hàm Tiện ích
+
+Chạy ô mã bên dưới để tải các thư viện cần thiết và khai báo các hàm hỗ trợ chung.
+Code 1: import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+
+def read_gray_cv2(path: str) -> np.nd...
+Markdown 2: ## 1.1 Hiệu chỉnh Gamma (Power-law Transform)
+
+Cài đặt phương pháp Hiệu chỉnh Gamma bằng NumPy và OpenCV.
+Chạy bài tập nhỏ (Mini-Task) áp dụng phương pháp này với ảnh mẫu `gamma_example.png` để phân tích kết quả.
+Code 3: def gamma_correction_np(img_u8: np.ndarray, gamma: float) -> np.ndarray:
+    """ Công thức hiệu chỉn...
+Markdown 4: ## 1.2 Các Phép toán Số học
+
+Thực hiện các phép Cộng, Trừ, Nhân, Chia trên ảnh bằng code tự lập trình với NumPy, và so sánh với thao tác của OpenCV.
+Code 5: def add_images_np(a: np.ndarray, b: np.ndarray, alpha=1.0, beta=1.0) -> np.ndarray:
+    """Phép cộng...
+Markdown 6: ## 1.3 Các Phép toán Logic (AND / OR / XOR)
+
+Áp dụng bộ phép tính hình học đại số Boolean trực tiếp lên các điểm ảnh của mặt nạ nhị phân.
+Code 7: def threshold_binary_np(img_u8: np.ndarray, t: int) -> np.ndarray:
+    """Phân ngưỡng: Nếu giá trị >...
+Markdown 8: ## 1.4 Phân ngưỡng Tự động Otsu
+
+Thuật toán tự động tìm được điểm nhị phân phân tách Tối/Sáng hiệu quả nhất cho ảnh thay vì gán ngưỡng bằng tay.
+Code 9: def otsu_threshold_np(img_u8: np.ndarray) -> int:
+    """Giải thuật phân chia khoảng Variance lớn nh...
+Markdown 10: ## 1.5 Bài tập Tích hợp sau Phần 1
+
+Nhiệm vụ: Sử dụng liên kết đường ống (Pipelines) với nhiều phương pháp phối hợp với nhau nhằm thực hiện một bài toán nhất định.
+Code 11: print("Bài tập 1: Làm sáng sau đó Áp dụng Otsu")
+ex1_img = read_gray_cv2('../Resources/threshold1.jp...
+Markdown 12: ## 2. Phép Tích chập 2D (2D Convolution)
+
+Cài đặt tính Tích chập trên mạng điểm ảnh kèm kỹ thuật Đệm lưới không gian (Padding bằng VALID hoặc SAME).
+Code 13: # Hàm Tiện ích Hỗ trợ phần đường biên (Padding)
+def pad_image_np(img: np.ndarray, pad_h: int, pad_w:...
+Markdown 14: ## 2.1 Bài tập Thực hành
+Code 15: print("Bài tập A: Làm mềm sau đó tạo mặt nạ nhị phân (Blur then Otsu)")
+# Thu nhỏ nếu file quá lớn n...
