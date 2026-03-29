@@ -1,0 +1,655 @@
+Lab 06B. Edge-Based Segmentation
+Computer Vision
+2025-2026
+Mục lục
+1 Mục tiêu bài học 3
+2 Kiến thức nền tảng và kết nối với các bài trước 3
+2.1 Pipeline tổng quát của lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+3 Các phương thức dùng chung cho toàn bộ bài lab 4
+3.1 Đọc ảnh xám và chuyển sang mảng NumPy . . . . . . . . . . . . . . . . . . . . 4
+3.2 Hiển thị ảnh xám, mask và ảnh nhị phân . . . . . . . . . . . . . . . . . . . . . . 4
+3.3 Hiển thị nhiều ảnh để so sánh trực quan . . . . . . . . . . . . . . . . . . . . . . 5
+3.4 Hiển thị edge map, contour và mask chồng lên ảnh . . . . . . . . . . . . . . . . 5
+3.5 Tạo mask từ contour hoặc từ snake . . . . . . . . . . . . . . . . . . . . . . . . . 6
+3.6 Khuyến nghị khi tổ chức code trong notebook . . . . . . . . . . . . . . . . . . . 6
+4 Contour Maps and Edge Representations 6
+4.1 Gợi ý lý thuyết . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+4.2 Pipeline sử dụng trong lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+4.3 Code hướng dẫn: gradient magnitude, edge map và contour . . . . . . . . . . . . 7
+4.4 Gợi ý loại ảnh mẫu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+4.5 Bài tập mở rộng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+5 Edge Linking and Gap Closing 9
+5.1 Gợi ý lý thuyết . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+5.2 Pipeline sử dụng trong lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+5.3 Code hướng dẫn . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+5.4 Gợi ý loại ảnh mẫu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+5.5 Bài tập mở rộng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+6 From Edge Maps to Closed Boundaries 11
+6.1 Gợi ý lý thuyết . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+6.2 Pipeline sử dụng trong lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+6.3 Code hướng dẫn . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+6.4 Gợi ý loại ảnh mẫu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+6.5 Bài tập mở rộng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+7 Closed Contours and Region Filling 12
+7.1 Gợi ý lý thuyết . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+7.2 Pipeline sử dụng trong lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+7.3 Code hướng dẫn . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+7.4 Gợi ý loại ảnh mẫu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+7.5 Bài tập mở rộng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+1
+Lab 06B. Edge-Based Segmentation Computer Vision
+8 Active Contour (Snake) Segmentation 15
+8.1 Gợi ý lý thuyết . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+8.1.1 Internal energy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+8.1.2 External energy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+8.1.3 Curvature và vai trò của độ mượt . . . . . . . . . . . . . . . . . . . . . 15
+8.1.4 Initial contour . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+8.2 Pipeline sử dụng trong lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+8.3 Code hướng dẫn . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+8.4 Gợi ý loại ảnh mẫu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+8.5 Bài tập mở rộng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+9 Bài tập tổng hợp cho toàn bộ bài học 18
+10 Kết luận 19
+2
+Lab 06B. Edge-Based Segmentation Computer Vision
+1.Mục tiêu bài học
+Sau bài thực hành này, sinh viên cần đạt được các mục tiêu sau:
+•Hiểu sự khác nhau giữa edge detection vàedge-based segmentation .
+•Xây dựng được pipeline hoàn chỉnh đi từ ảnh xám đến edge map , từedge map đếnclosed
+contour , và từ contour đến segmentation mask .
+•Phân tích được vai trò của các bước tiền xử lý, liên kết biên, lọc contour và điền vùng.
+•Hiểu mô hình active contour (snake), bao gồm internal energy ,external energy ,curvature và
+ảnh hưởng của initial contour .
+•Áp dụng được các kỹ thuật đã học trước đó như histogram, thresholding, filtering, edge
+detection, morphology, connected components vào bài toán segmentation dựa trên biên.
+2.Kiến thức nền tảng và kết nối với các bài trước
+Trong các bài trước, sinh viên đã làm quen với:
+•ảnh đa cấp xám và cách lưu ảnh như một ma trận số,
+•histogram và ý nghĩa của phân bố mức xám,
+•các thao tác trên điểm ảnh và lấy ngưỡng tự động,
+•các phép toán số học và logic trên ảnh,
+•các bộ lọc làm trơn và làm sắc,
+•các thuật toán dò biên như Sobel, Laplacian, Canny.
+Bài lab này tiếp nối trực tiếp các nội dung đó. Điểm khác biệt quan trọng là: các thuật toán
+dò biên chỉ cho biết biên ở đâu , trong khi segmentation yêu cầu xác định vùng nào là đối tượng .
+Vì vậy, phần edge-based segmentation chính là chuỗi bước biến thông tin biên thành biểu diễn
+vùng.
+2.1. Pipeline tổng quát của lab
+Ảnh xám Tiền xử lý
+Edge map
+Liên kết biên
+Contour / Snake
+Mask vùng
+3
+Lab 06B. Edge-Based Segmentation Computer Vision
+3.Các phương thức dùng chung cho toàn bộ bài lab
+Phần này cung cấp các hàm dùng chung để đọc ảnh, chuẩn hóa dữ liệu và hiển thị trực quan các
+kết quả trung gian. Các hàm này nên được đặt ở đầu notebook hoặc đầu file thực hành để tái sử
+dụng cho tất cả các phần sau.
+3.1. Đọc ảnh xám và chuyển sang mảng NumPy
+Trong toàn bộ bài này, chúng ta làm việc chủ yếu với ảnh đa cấp xám. Khi đọc ảnh, cần đảm bảo
+ảnh được đưa về dạng mảng hai chiều numpy.ndarray với mức xám trong khoảng [0,255].
+1 import cv2
+2 import numpy asnp
+3 import matplotlib.pyplot asplt
+4
+5
+6 defread_gray_image(path):
+7img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+8 ifimg isNone:
+9 raiseFileNotFoundError(f "Khôngđọcđượcảnh:{path}")
+10 return img
+11
+12
+13 defensure_uint8(img):
+14img = np.asarray(img)
+15 ifimg.dtype == np.uint8:
+16 return img
+17img = np.clip(img, 0, 255)
+18 return img.astype(np.uint8)
+19
+20
+21 defnormalize_to_uint8(img):
+22img = np.asarray(img).astype(np.float32)
+23mn, mx = img. min(), img. max()
+24 ifmx - mn < 1e-8:
+25 return np.zeros_like(img, dtype=np.uint8)
+26out = (img - mn) / (mx - mn) * 255.0
+27 return out.astype(np.uint8)
+Listing 1: Các hàm cơ sở để đọc và chuẩn hóa ảnh xám
+3.2. Hiển thị ảnh xám, mask và ảnh nhị phân
+1 defshow_gray(img, title= "Image", figsize=(5, 5)):
+2plt.figure(figsize=figsize)
+3plt.imshow(img, cmap= "gray")
+4plt.title(title)
+5plt.axis( "off")
+6plt.show()
+7
+8
+4
+Lab 06B. Edge-Based Segmentation Computer Vision
+9 defshow_binary(mask, title= "Binary Mask", figsize=(5, 5)):
+10plt.figure(figsize=figsize)
+11plt.imshow(mask, cmap= "gray", vmin=0, vmax=255)
+12plt.title(title)
+13plt.axis( "off")
+14plt.show()
+Listing 2: Hiển thị một ảnh xám hoặc mask
+3.3. Hiển thị nhiều ảnh để so sánh trực quan
+1 defshow_images(images, titles=None, cols=3, figsize=(15, 8), cmap= "
+gray"):
+2n = len(images)
+3rows = int(np.ceil(n / cols))
+4plt.figure(figsize=figsize)
+5 fori, img in enumerate (images):
+6 plt.subplot(rows, cols, i + 1)
+7 plt.imshow(img, cmap=cmap)
+8 iftitles is notNone:
+9 plt.title(titles[i])
+10 plt.axis( "off")
+11plt.tight_layout()
+12plt.show()
+Listing 3: Hàm hiển thị nhiều ảnh trên cùng một hàng
+3.4. Hiển thị edge map, contour và mask chồng lên ảnh
+Ngoài việc xem ảnh trung gian ở dạng độc lập, sinh viên cần nhìn thấy kết quả chồng trực tiếp
+lên ảnh gốc để hiểu rõ mối quan hệ giữa biên, contour và vùng.
+1 defdraw_contours_on_image(img_gray, contours, color=(0, 255, 0),
+thickness=2):
+2base = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+3cv2.drawContours(base, contours, -1, color, thickness)
+4 return base
+Listing 4: Vẽ contour lên ảnh gốc
+1 defoverlay_mask_on_image(img_gray, mask, alpha=0.35):
+2base = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+3overlay = base.copy()
+4overlay[mask > 0] = (255, 0, 0)
+5out = cv2.addWeighted(overlay, alpha, base, 1 - alpha, 0)
+6 return out
+Listing 5: Chồng mask lên ảnh gốc
+1 defoverlay_edges_on_image(img_gray, edge_map):
+2base = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+3base[edge_map > 0] = (255, 0, 0)
+5
+Lab 06B. Edge-Based Segmentation Computer Vision
+4 return base
+Listing 6: Hiển thị edge map chồng lên ảnh
+3.5. Tạo mask từ contour hoặc từ snake
+1 defcontours_to_mask(img_shape, contours):
+2mask = np.zeros(img_shape, dtype=np.uint8)
+3cv2.drawContours(mask, contours, -1, 255, thickness=-1)
+4 return mask
+Listing 7: Tô contour để tạo mask vùng
+1 defsnake_to_mask(img_shape, snake_points):
+2mask = np.zeros(img_shape, dtype=np.uint8)
+3pts = np. round(snake_points[:, ::-1]).astype(np.int32) #(row,col
+)->(x,y)
+4pts = pts.reshape((-1, 1, 2))
+5cv2.fillPoly(mask, [pts], 255)
+6 return mask
+Listing 8: Tạo mask từ tập điểm snake
+3.6. Khuyến nghị khi tổ chức code trong notebook
+Sinh viên nên tổ chức notebook theo các nhóm cell:
+1.import thư viện,
+2.khai báo các hàm dùng chung,
+3.chạy ví dụ cho từng thuật toán,
+4.viết phần bài tập mở rộng ở cuối mỗi mục.
+Cách tổ chức này giúp giảm lỗi lặp code và hỗ trợ sinh viên tập trung vào logic của pipeline.
+4.Contour Maps and Edge Representations
+4.1. Gợi ý lý thuyết
+Mục tiêu của phần này là giúp sinh viên nhận ra rằng bản đồ biên (edge map) chỉ là biểu diễn ban
+đầu của đường biên, chứ chưa phải kết quả segmentation. Một edge detector thường tạo ra một
+trong ba dạng biểu diễn sau:
+•Gradient magnitude map : lưu độ mạnh của biên tại từng pixel.
+•Binary edge map : ảnh nhị phân, pixel biên bằng 255 và nền bằng 0.
+•Contour representation : biểu diễn dạng danh sách điểm theo thứ tự dọc theo đường biên.
+6
+Lab 06B. Edge-Based Segmentation Computer Vision
+Nếu gọi ảnh xám là I(x, y), đạo hàm theo hai hướng được ký hiệu là GxvàGy, thì độ lớn
+gradient là:
+|∇I|=√
+G2
+x+G2
+y.
+Từ gradient magnitude, ta có thể lấy ngưỡng để thu được ảnh biên nhị phân. Trong các hệ
+thống thực tế, Canny thường cho kết quả biên mảnh và ổn định hơn so với lấy ngưỡng đơn giản
+trên Sobel magnitude.
+4.2. Pipeline sử dụng trong lab
+Ảnh xám
+Làm trơn
+Gradient map
+Edge map
+Contour extraction
+4.3. Code hướng dẫn: gradient magnitude, edge map và contour
+1 defcompute_gradient_magnitude(img_gray):
+2gx = cv2.Sobel(img_gray, cv2.CV_64F, 1, 0, ksize=3)
+3gy = cv2.Sobel(img_gray, cv2.CV_64F, 0, 1, ksize=3)
+4grad = np.sqrt(gx**2 + gy**2)
+5 return normalize_to_uint8(grad)
+Listing 9: Tính gradient magnitude bằng Sobel
+1 defgradient_threshold_edge_map(grad, thresh=50):
+2edge = np.zeros_like(grad, dtype=np.uint8)
+3edge[grad >= thresh] = 255
+4 return edge
+Listing 10: Tạo edge map từ gradient magnitude
+1 defcanny_edge_map(img_gray, low=80, high=160, blur_kernel=5):
+2blur = cv2.GaussianBlur(img_gray, (blur_kernel, blur_kernel), 1.0)
+3edges = cv2.Canny(blur, low, high)
+4 return blur, edges
+Listing 11: Tạo edge map bằng Canny
+1 defextract_external_contours(edge_map):
+2contours, hierarchy = cv2.findContours(
+3 edge_map,
+4 cv2.RETR_EXTERNAL,
+7
+Lab 06B. Edge-Based Segmentation Computer Vision
+5 cv2.CHAIN_APPROX_SIMPLE
+6)
+7 return contours, hierarchy
+Listing 12: Trích contour từ edge map
+1 defdemo_contour_maps(img_gray):
+2grad = compute_gradient_magnitude(img_gray)
+3edge_grad = gradient_threshold_edge_map(grad, thresh=60)
+4blur, edge_canny = canny_edge_map(img_gray, 80, 160)
+5contours, _ = extract_external_contours(edge_canny)
+6contour_overlay = draw_contours_on_image(img_gray, contours)
+7 return {
+8 "blur": blur,
+9 "grad": grad,
+10 "edge_grad ": edge_grad,
+11 "edge_canny ": edge_canny,
+12 "contour_overlay ": contour_overlay
+13}
+Listing 13: Ví dụ minh họa toàn bộ pipeline của phần A
+4.4. Gợi ý loại ảnh mẫu
+Nên chọn các loại ảnh có biên rõ, nền đơn giản, ít vật thể chồng lấn:
+•đồng xu trên nền tối hoặc sáng tương đối đồng nhất,
+•bu lông, con ốc, dụng cụ cơ khí nhỏ,
+•lá cây trên nền trắng,
+•các vật thể công nghiệp tách rời nhau.
+4.5. Bài tập mở rộng
+Bài 1: So sánh các biểu diễn biên
+•Đầu vào: một ảnh coin hoặc ảnh object có biên rõ.
+•Yêu cầu: tạo ba kết quả: gradient magnitude, edge map từ threshold gradient, và edge map
+từ Canny.
+•Đầu ra: ba ảnh kết quả và một đoạn nhận xét ngắn.
+•Mục tiêu: giúp sinh viên thấy rằng gradient magnitude chứa thông tin mức độ mạnh của biên,
+còn edge map nhị phân chỉ giữ quyết định có/không có biên.
+•Cách so sánh: so sánh độ mảnh của biên, độ liên tục của biên, lượng nhiễu và khả năng phân
+biệt biên thật với nền.
+8
+Lab 06B. Edge-Based Segmentation Computer Vision
+Bài 2: Vẽ contour lên ảnh gốc
+•Đầu vào: ảnh object đơn giản với nền ít nhiễu.
+•Yêu cầu: dùng findContours để trích contour từ edge map và vẽ contour đó lên ảnh gốc.
+•Đầu ra: ảnh gốc có overlay contour.
+•Mục tiêu: giúp sinh viên hiểu contour là biểu diễn hình học có thứ tự của các điểm biên.
+•Ảnh nên chọn: coin, lá cây, hạt hoặc vật hình tròn, hình elip.
+5.Edge Linking and Gap Closing
+5.1. Gợi ý lý thuyết
+Trong thực tế, edge map hiếm khi hoàn hảo. Biên có thể bị đứt do nhiễu, tương phản yếu, ngưỡng
+chưa phù hợp hoặc do bề mặt vật thể phản xạ không đều. Nếu các đoạn biên không được nối lại,
+contour trích xuất được có thể hở và không dùng tốt cho segmentation.
+Gap closing là bước nối các đoạn biên gần nhau. Trong lab này, ta sử dụng cách đơn giản
+nhưng hiệu quả là morphological closing , tức là dilation rồi erosion. Bước này có thể làm các
+khoảng hở nhỏ được lấp lại. Sau đó, ta dùng connected component filtering để loại bỏ các mảnh
+biên nhỏ do nhiễu.
+5.2. Pipeline sử dụng trong lab
+Edge map
+Loại nhiễu nhỏ
+Morphological closing
+Connected components
+Linked edges
+5.3. Code hướng dẫn
+1 defedge_linking_with_closing(edge_map, kernel_size=5):
+2kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size
+, kernel_size))
+3linked = cv2.morphologyEx(edge_map, cv2.MORPH_CLOSE, kernel)
+4 return linked
+Listing 14: Liên kết các đoạn biên bằng phép closing
+9
+Lab 06B. Edge-Based Segmentation Computer Vision
+1 deffilter_small_edge_components(binary_img, min_area=30):
+2num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(
+binary_img, connectivity=8)
+3clean = np.zeros_like(binary_img)
+4 fori in range(1, num_labels):
+5 area = stats[i, cv2.CC_STAT_AREA]
+6 ifarea >= min_area:
+7 clean[labels == i] = 255
+8 return clean
+Listing 15: Lọc connected components nhỏ
+1 defdemo_edge_linking(edge_map, kernel_size=5, min_area=30):
+2linked = edge_linking_with_closing(edge_map, kernel_size=
+kernel_size)
+3clean = filter_small_edge_components(linked, min_area=min_area)
+4 return {"linked": linked, "clean": clean}
+Listing 16: Ví dụ chạy linking và làm sạch biên
+5.4. Gợi ý loại ảnh mẫu
+Nên chọn ảnh có biên gần khép kín nhưng bị hở nhẹ, ví dụ:
+•ảnh coin có phản xạ không đều,
+•ảnh hạt, viên thuốc, viên bi,
+•ảnh lá cây có mép không quá phức tạp.
+Để minh họa lỗi của gap closing quá mạnh, nên có thêm ảnh chứa nhiều object gần nhau.
+5.5. Bài tập mở rộng
+Bài 1: So sánh trước và sau edge linking
+•Đầu vào: một ảnh coin hoặc vật thể hình tròn có biên bị hở nhẹ.
+•Yêu cầu: hiển thị edge map trước linking và linked edge map sau closing.
+•Đầu ra: hai ảnh và một đoạn nhận xét.
+•Mục tiêu: thấy rõ vì sao edge map tốt cho segmentation cần có biên đủ liên tục.
+•Cách so sánh: số lượng khoảng hở, độ liên tục của contour, mức nhiễu.
+Bài 2: Ảnh hưởng của kích thước kernel
+•Đầu vào: ảnh có nhiều vật thể gần nhau.
+•Yêu cầu: thử3×3,5×5,7×7.
+•Đầu ra: ba ảnh linked edge map và ba kết quả contour tương ứng.
+10
+Lab 06B. Edge-Based Segmentation Computer Vision
+•Mục tiêu: phân tích sự đánh đổi giữa việc lấp khoảng hở và nguy cơ làm dính hai object khác
+nhau.
+•Ảnh nên chọn: coin gần nhau, viên thuốc, hạt nhỏ.
+6.From Edge Maps to Closed Boundaries
+6.1. Gợi ý lý thuyết
+Phần này kết nối trực tiếp giữa edge detection và contour-based segmentation. Một edge map chỉ
+là tập các pixel biên; còn segmentation yêu cầu một đường bao đủ tốt để phân chia miền trong
+và miền ngoài. Vì vậy, mục tiêu ở đây là biến edge map thành một tập closed boundaries hoặc ít
+nhất là contour đủ ổn định để tiếp tục xử lý.
+Các bước chính gồm: làm trơn ảnh, phát hiện biên, làm sạch edge map, nối các khe hở nhỏ,
+trích contour và chọn các contour hợp lệ.
+6.2. Pipeline sử dụng trong lab
+Image
+Smoothing
+Edge detection
+Cleaning
+Gap closing
+Contours
+6.3. Code hướng dẫn
+1 defedge_to_closed_boundary_pipeline(img_gray, canny1=80, canny2=160,
+2 min_comp_area=30,
+min_contour_area=100,
+3 kernel_size=5):
+4blur = cv2.GaussianBlur(img_gray, (5, 5), 1.0)
+5edges = cv2.Canny(blur, canny1, canny2)
+6linked = edge_linking_with_closing(edges, kernel_size=kernel_size)
+7clean = filter_small_edge_components(linked, min_area=
+min_comp_area)
+8contours, _ = cv2.findContours(clean, cv2.RETR_EXTERNAL, cv2.
+CHAIN_APPROX_SIMPLE)
+9good_contours = []
+10 forc incontours:
+11
+Lab 06B. Edge-Based Segmentation Computer Vision
+11 area = cv2.contourArea(c)
+12 ifarea >= min_contour_area:
+13 good_contours.append(c)
+14contour_overlay = draw_contours_on_image(img_gray, good_contours)
+15 return {
+16 "blur": blur,
+17 "edges": edges,
+18 "linked": linked,
+19 "clean": clean,
+20 "contours ": good_contours,
+21 "overlay ": contour_overlay
+22}
+Listing 17: Pipeline từ ảnh xám đến closed boundaries
+6.4. Gợi ý loại ảnh mẫu
+Chọn các ảnh có object với đường biên gần khép kín, ví dụ coin, screw, washer, pill. Nếu muốn
+minh họa trường hợp khó hơn, có thể thêm ảnh vật thể có vài đoạn biên yếu.
+6.5. Bài tập mở rộng
+Bài 1: Pipeline có và không có gap closing
+•Đầu vào: ảnh coin, screw hoặc seed.
+•Yêu cầu: chạy pipeline với và không với bước morphological closing.
+•Đầu ra: contour overlay của hai trường hợp.
+•Mục tiêu: chứng minh bước gap closing là cần thiết để tạo closed boundaries.
+•Cách so sánh: số contour hợp lệ, độ kín của contour, khả năng dùng contour để fill vùng.
+Bài 2: Lọc contour hợp lệ
+•Đầu vào: ảnh có cả biên object thật và biên nhiễu.
+•Yêu cầu: thay đổi ngưỡng min_contour_area .
+•Đầu ra: các contour còn lại sau lọc.
+•Mục tiêu: giúp sinh viên hiểu vai trò của bước lựa chọn contour trong pipeline segmentation.
+7.Closed Contours and Region Filling
+7.1. Gợi ý lý thuyết
+Khi đã có contour khép kín hoặc đủ kín để coi như khép kín, ta có thể tô vùng bên trong contour
+để tạo segmentation mask. Đây là bước chuyển từ biểu diễn theo đường biên sang biểu diễn theo
+vùng . Bài này giúp sinh viên nhìn thấy rõ rằng một đường bao có ý nghĩa hình học và có thể sử
+dụng trực tiếp để xác định vùng của đối tượng.
+Trong nhiều bài toán cơ bản, closed contour segmentation hoạt động tốt nếu:
+12
+Lab 06B. Edge-Based Segmentation Computer Vision
+•object có biên rõ,
+•object không chồng lấn mạnh,
+•contour sau linking đủ kín.
+7.2. Pipeline sử dụng trong lab
+Closed contours
+Contour filtering
+Region filling
+Segmentation mask
+7.3. Code hướng dẫn
+1 deffilter_contours_by_area(contours, min_area=200):
+2good_contours = []
+3 forc incontours:
+4 area = cv2.contourArea(c)
+5 ifarea >= min_area:
+6 good_contours.append(c)
+7 return good_contours
+Listing 18: Lọc contour theo diện tích
+1 defcontour_circularity(contour):
+2area = cv2.contourArea(contour)
+3perim = cv2.arcLength(contour, True)
+4 ifperim < 1e-8:
+5 return 0.0
+6circ = 4.0 * np.pi * area / (perim ** 2)
+7 return circ
+Listing 19: Tính chu vi và độ tròn của contour
+1 deffilter_circular_contours(contours, min_area=100, min_circularity
+=0.75):
+2out = []
+3 forc incontours:
+4 area = cv2.contourArea(c)
+5 circ = contour_circularity(c)
+6 ifarea >= min_area andcirc >= min_circularity:
+7 out.append(c)
+8 return out
+Listing 20: Lọc contour gần tròn
+13
+Lab 06B. Edge-Based Segmentation Computer Vision
+1 defdemo_region_filling(img_gray, contours, min_area=200):
+2good = filter_contours_by_area(contours, min_area=min_area)
+3mask = contours_to_mask(img_gray.shape, good)
+4overlay = overlay_mask_on_image(img_gray, mask)
+5 return {"good_contours ": good, "mask": mask, "overlay ": overlay}
+Listing 21: Ví dụ tạo mask từ contour
+7.4. Gợi ý loại ảnh mẫu
+Ảnh phù hợp nhất cho phần này là các object tách rời, biên đơn giản, ví dụ:
+•đồng xu,
+•viên thuốc,
+•hạt giống,
+•chi tiết cơ khí nhỏ,
+•shape hình học in trên giấy.
+7.5. Bài tập mở rộng
+Bài 1: Lọc contour theo diện tích và chu vi
+•Đầu vào: ảnh chứa nhiều vật thể và một số contour nhiễu.
+•Yêu cầu: viết hàm lọc contour theo diện tích tối thiểu và chu vi tối thiểu.
+•Đầu ra: mask chỉ chứa các object hợp lệ.
+•Mục tiêu: giúp sinh viên thực hành phân tích hình học của contour và loại bỏ biên không
+mong muốn.
+•So sánh: số contour ban đầu và số contour sau lọc, chất lượng mask sau khi fill.
+Bài 2: Chỉ giữ vật thể gần tròn
+•Đầu vào: ảnh chứa cả object tròn và không tròn.
+•Yêu cầu: dùng circularity để chỉ giữ vật thể có dạng gần tròn.
+•Đầu ra: mask và ảnh overlay trên ảnh gốc.
+•Mục tiêu: kết hợp contour extraction với shape analysis.
+•Ảnh nên chọn: ảnh coin trộn với bu lông, đai ốc, hoặc ảnh nhiều shape in trên giấy.
+14
+Lab 06B. Edge-Based Segmentation Computer Vision
+8.Active Contour (Snake) Segmentation
+8.1. Gợi ý lý thuyết
+Khi biên của object không đủ mạnh hoặc contour không dễ đóng kín chỉ bằng edge detection và
+gap closing, ta cần một mô hình linh hoạt hơn: active contour haysnake . Snake là một đường
+cong động có thể co, giãn và biến dạng dần để tiến tới ranh giới của object.
+Snake tối ưu tổng năng lượng:
+Esnake =Einternal +Eexternal .
+8.1.1. Internal energy
+Internal energy giữ cho contour có tính hình học hợp lý. Một dạng viết thường gặp là:
+Einternal =α|v′(s)|2+β|v′′(s)|2.
+Trong đó:
+•v′(s)liên quan đến độ căng của contour;
+•v′′(s)liên quan đến độ cong và độ mượt.
+Ý nghĩa trực giác:
+•αlớn làm contour có xu hướng ngắn lại, tránh kéo dài bất thường;
+•βlớn làm contour mượt hơn, ít bị gấp khúc.
+8.1.2. External energy
+External energy được lấy từ ảnh, thường dựa trên gradient hoặc một force map . Một biểu thức
+phổ biến là:
+Eexternal =−|∇I(x, y)|2.
+Nghĩa là snake có xu hướng di chuyển về nơi gradient lớn, tức là các vị trí có biên mạnh.
+8.1.3. Curvature và vai trò của độ mượt
+Thành phần curvature liên quan đến đạo hàm bậc hai của contour. Nó giúp contour tránh bị răng
+cưa hoặc bám theo nhiễu cục bộ. Nếu regularization quá yếu, snake có thể bị nhiễu kéo lệch; nếu
+quá mạnh, snake trở nên cứng và khó bám sát biên thật.
+8.1.4. Initial contour
+Snake luôn cần một contour ban đầu. Nếu contour khởi tạo gần object, kết quả thường tốt. Nếu
+khởi tạo quá xa hoặc cắt ngang object, snake có thể hội tụ sai. Đây là điểm cần được làm rõ bằng
+ví dụ thực nghiệm trong lab.
+15
+Lab 06B. Edge-Based Segmentation Computer Vision
+8.2. Pipeline sử dụng trong lab
+Ảnh xám
+Làm trơn
+Image force map
+Initial contour
+Iterative deformation
+Final snake
+8.3. Code hướng dẫn
+1 fromskimage.segmentation import active_contour
+2 fromskimage.filters import gaussian
+3
+4
+5 defrun_active_contour(img_gray, init_contour,
+6 sigma=2.0, alpha=0.1, beta=0.2, gamma=0.01):
+7img_float = img_gray.astype(np.float32) / 255.0
+8img_smooth = gaussian(img_float, sigma=sigma)
+9snake = active_contour(
+10 img_smooth,
+11 init_contour,
+12 alpha=alpha,
+13 beta=beta,
+14 gamma=gamma,
+15 coordinates= 'rc'
+16)
+17 return img_smooth, snake
+Listing 22: Chạy active contour bằng scikit-image
+1 defcreate_ellipse_init_contour(center_row, center_col,
+2 radius_row, radius_col,
+3 num_points=200):
+4t = np.linspace(0, 2 * np.pi, num_points)
+5rows = center_row + radius_row * np.sin(t)
+6cols = center_col + radius_col * np.cos(t)
+7init = np.stack([rows, cols], axis=1)
+8 return init
+Listing 23: Tạo initial contour dạng ellipse
+16
+Lab 06B. Edge-Based Segmentation Computer Vision
+1 defdraw_snake_on_image(img_gray, snake_points, color=(0, 255, 0),
+thickness=2):
+2base = cv2.cvtColor(img_gray, cv2.COLOR_GRAY2BGR)
+3pts = np. round(snake_points[:, ::-1]).astype(np.int32) #(row,col
+)->(x,y)
+4pts = pts.reshape((-1, 1, 2))
+5cv2.polylines(base, [pts], isClosed=True, color=color, thickness=
+thickness)
+6 return base
+Listing 24: Vẽ snake lên ảnh gốc
+1 defdemo_snake_segmentation(img_gray, init_contour,
+2 sigma=2.0, alpha=0.1, beta=0.2, gamma
+=0.01):
+3img_smooth, snake = run_active_contour(
+4 img_gray, init_contour,
+5 sigma=sigma, alpha=alpha, beta=beta, gamma=gamma
+6)
+7snake_overlay = draw_snake_on_image(img_gray, snake)
+8mask = snake_to_mask(img_gray.shape, snake)
+9mask_overlay = overlay_mask_on_image(img_gray, mask)
+10 return {
+11 "img_smooth ": img_smooth,
+12 "snake": snake,
+13 "snake_overlay ": snake_overlay,
+14 "mask": mask,
+15 "mask_overlay ": mask_overlay
+16}
+Listing 25: Ví dụ hoàn chỉnh cho snake segmentation
+8.4. Gợi ý loại ảnh mẫu
+Snake phù hợp với những ảnh mà biên tương đối liên tục nhưng không quá sắc, hoặc khó khép
+kín chỉ bằng contour filling thông thường, chẳng hạn:
+•ảnh cell,
+•ảnh cơ quan hoặc cấu trúc giải phẫu đơn giản,
+•ảnh vật thể tròn hoặc gần tròn có biên mềm,
+•ảnh object đơn lẻ trên nền ít nhiễu.
+8.5. Bài tập mở rộng
+Bài 1: So sánh initial contour tốt và xấu
+•Đầu vào: ảnh chỉ có một object chính, ví dụ cell hoặc đồng xu.
+•Yêu cầu: tạo hai initial contour: một contour gần object và một contour xa object.
+17
+Lab 06B. Edge-Based Segmentation Computer Vision
+•Đầu ra: hai snake overlay và hai mask tương ứng.
+•Mục tiêu: chứng minh rằng khởi tạo ban đầu ảnh hưởng mạnh tới khả năng hội tụ của snake.
+•Cách so sánh: vị trí contour cuối cùng, mức độ bám biên, mức độ sai lệch khỏi object thật.
+Bài 2: Ảnh hưởng của α,β,γ
+•Đầu vào: một ảnh và một initial contour cố định.
+•Yêu cầu: thay đổi từng tham số trong khi giữ các tham số còn lại cố định.
+•Đầu ra: các snake overlay tương ứng với từng bộ tham số.
+•Mục tiêu: hiểu vai trò của tension, smoothness và tốc độ cập nhật trong mô hình snake.
+•Ảnh nên chọn: cell đơn lẻ, coin, hoặc vật gần tròn.
+Bài 3: So sánh contour filling và snake
+•Đầu vào: ảnh có biên tương đối yếu.
+•Yêu cầu: áp dụng cả closed contour filling và active contour.
+•Đầu ra: hai mask kết quả và ảnh overlay tương ứng.
+•Mục tiêu: giúp sinh viên hiểu khi nào snake phù hợp hơn contour-based segmentation đơn
+giản.
+•Cách so sánh: độ bám theo biên thật, tính ổn định khi biên bị hở hoặc yếu.
+9.Bài tập tổng hợp cho toàn bộ bài học
+Bài 1: Xây dựng pipeline contour-based segmentation hoàn chỉnh
+•Đầu vào: ảnh coin hoặc ảnh chi tiết cơ khí có nền đơn giản.
+•Yêu cầu: xây dựng pipeline gồm Gaussian blur, Canny, gap closing, contour extraction,
+contour filtering và region filling.
+•Đầu ra: edge overlay, contour overlay, segmentation mask và mask overlay.
+•Mục tiêu: thực hành toàn bộ pipeline chuẩn của edge-based segmentation.
+•Cách so sánh: đối chiếu các ảnh trung gian để giải thích bước nào đóng vai trò quan trọng
+nhất.
+Bài 2: Nghiên cứu ảnh hưởng của gap closing
+•Đầu vào: ảnh object có biên hở nhẹ.
+•Yêu cầu: chạy cùng một pipeline với các kernel closing khác nhau.
+•Đầu ra: bảng hình ảnh gồm edge map, linked edges, contour overlay và mask ở các cấu hình
+khác nhau.
+•Mục tiêu: phân tích mối liên hệ giữa edge linking và khả năng khép contour.
+18
+Lab 06B. Edge-Based Segmentation Computer Vision
+Bài 3: Shape-aware contour selection
+•Đầu vào: ảnh chứa nhiều object có hình dạng khác nhau.
+•Yêu cầu: xây dựng tiêu chí giữ lại object gần tròn hoặc object có diện tích trong khoảng xác
+định.
+•Đầu ra: mask chỉ chứa nhóm object mong muốn.
+•Mục tiêu: thực hành phân tích hình học trên contour và ra quyết định theo bài toán cụ thể.
+Bài 4: Snake trên ảnh biên yếu
+•Đầu vào: ảnh cell hoặc object có biên mềm.
+•Yêu cầu: chạy snake với hai initial contour khác nhau và nhận xét.
+•Đầu ra: snake overlay, mask snake và phần mô tả sự khác nhau giữa hai trường hợp.
+•Mục tiêu: nhấn mạnh vai trò của khởi tạo ban đầu trong active contour.
+Bài 5: Case study nhỏ trên một tập ảnh
+•Đầu vào: chọn một tập ảnh nhỏ gồm 5–10 ảnh cùng loại, ví dụ coins, leaves hoặc cells.
+•Yêu cầu: áp dụng ít nhất hai hướng: closed contour filling và snake.
+•Đầu ra: bộ kết quả cho từng ảnh và nhận xét tổng hợp về ưu/nhược điểm của từng hướng.
+•Mục tiêu: giúp sinh viên không chỉ chạy code trên một ảnh đơn lẻ mà còn đánh giá tính ổn
+định của thuật toán trên một nhóm ảnh.
+•Cách so sánh: dùng tiêu chí định tính như độ bám biên, mức nhiễu của mask, khả năng tách
+nền và độ nhạy với tham số.
+10.Kết luận
+Qua bài lab này, sinh viên cần rút ra các điểm chính sau:
+•Dò biên không đồng nghĩa với segmentation; cần thêm nhiều bước trung gian để biến thông
+tin biên thành vùng.
+•Biểu diễn contour là cầu nối quan trọng giữa edge map vàregion mask .
+•Gap closing và contour filtering là hai bước rất quan trọng trong các pipeline edge-based cổ
+điển.
+•Active contour là công cụ mạnh khi biên yếu hoặc khi đường bao không dễ thu được chỉ bằng
+edge map nhị phân.
+•Không có phương pháp nào tốt cho mọi loại ảnh; việc chọn pipeline phụ thuộc mạnh vào đặc
+trưng biên của đối tượng, độ phức tạp của nền và mục tiêu phân đoạn.
+19
