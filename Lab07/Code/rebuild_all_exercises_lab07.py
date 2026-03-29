@@ -19,6 +19,7 @@ nb.cells.append(nbf.v4.new_markdown_cell("# BÀI THỰC HÀNH 07: EDGE-BASED SEG
 text_3 = extract_between("3.Các phương thức dùng chung", "3.1. Đọc ảnh xám")
 nb.cells.append(nbf.v4.new_markdown_cell(text_3))
 nb.cells.append(nbf.v4.new_code_cell('''import cv2
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.segmentation import active_contour
@@ -238,7 +239,7 @@ nb.cells.append(nbf.v4.new_markdown_cell(text_8_intro))
 nb.cells.append(nbf.v4.new_code_cell('''def run_active_contour(img_gray, init_contour, sigma=2.0, alpha=0.1, beta=0.2, gamma=0.01):
     img_float = img_gray.astype(np.float32) / 255.0
     img_smooth = gaussian(img_float, sigma=sigma)
-    snake = active_contour(img_smooth, init_contour, alpha=alpha, beta=beta, gamma=gamma, coordinates='rc')
+    snake = active_contour(img_smooth, init_contour, alpha=alpha, beta=beta, gamma=gamma)
     return img_smooth, snake
 
 def create_ellipse_init_contour(center_row, center_col, radius_row, radius_col, num_points=200):
@@ -299,7 +300,7 @@ nb.cells.append(nbf.v4.new_code_cell('''img_9_1 = read_gray_image('../Resources/
 out_9_1 = edge_to_closed_boundary_pipeline(img_9_1, 50, 150, min_comp_area=50, min_contour_area=200, kernel_size=9)
 mask_9_1 = contours_to_mask(img_9_1.shape, out_9_1['contours'])
 overlay_mask_9_1 = overlay_mask_on_image(img_9_1, mask_9_1)
-edge_overlay = overlay_edges_on_image(img_9_1, out_9_1['edges'])
+edge_overlay = overlay_mask_on_image(img_9_1, out_9_1['edges'])
 
 show_images([edge_overlay, out_9_1['overlay'], mask_9_1, overlay_mask_9_1],
             ['Edge Overlay', 'Contour Overlay', 'Segmentation Mask', 'Mask Overlay'], cols=4, figsize=(20, 5))'''))
