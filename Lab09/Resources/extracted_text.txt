@@ -1,0 +1,784 @@
+LAB 09. Xử lý ảnh màu
+với hệ màu CIE XYZ và CIE Lab
+Computer Vision, MIM, HUS
+2025-2026
+Mục lục
+1 Giới thiệu chung 4
+2 Mục tiêu học tập 4
+3 Chuẩn bị trước buổi thực hành 5
+3.1 Kiến thức cần có . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+3.2 Môi trường phần mềm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+3.3 Dữ liệu gợi ý . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+4 Ôn tập các hệ màu cần dùng 5
+4.1 RGB . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 5
+4.2 HSV . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+4.3 CIE XYZ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+4.4 CIE Lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+5 Các hàm chuyển đổi màu cốt lõi 6
+5.1 RGB sang XYZ bằng NumPy . . . . . . . . . . . . . . . . . . . . . . . . . . 6
+5.2 XYZ sang Lab bằng NumPy . . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+5.3 Khoảng cách màu trong XYZ và Lab . . . . . . . . . . . . . . . . . . . . . . 8
+6 Bài toán 1: Chuyển đổi và trực quan hóa các hệ màu 8
+6.1 Mục đích . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+6.2 Pipeline . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+6.3 T rình tự thực hiện . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+6.4 Code NumPy và hiển thị . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+6.5 Câu hỏi sau phần này . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 9
+6.6 Bài tập nâng cao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+7 Bài toán 2: Phân ngưỡng trong các hệ màu 10
+7.1 Mục đích . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+7.2 Pipeline 1: Threshold theo kênh Y trong XYZ . . . . . . . . . . . . . . . . . 10
+7.3 Giải thích trình tự . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+7.4 Code NumPy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+7.5 Code OpenCV . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+7.6 Pipeline 2: Threshold theo khoảng cách màu trong Lab . . . . . . . . . . . . 11
+7.7 Giải thích trình tự . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+7.8 Code NumPy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+7.9 Code OpenCV . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+7.10 Ảnh minh họa phù hợp . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+1
+
+7.11 Câu hỏi sau phần này . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+7.12 Bài tập nâng cao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+7.13 Bài tập tổng hợp nhỏ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+8 Bài toán 3: Khử nhiễu trong CIE XYZ và Lab 12
+8.1 Mục đích . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+8.2 Pipeline 1: Lọc trên kênh Y của XYZ . . . . . . . . . . . . . . . . . . . . . . 13
+8.3 Giải thích trình tự . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+8.4 Code NumPy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+8.5 Pipeline 2: Lọc trên L∗của Lab . . . . . . . . . . . . . . . . . . . . . . . . . 13
+8.6 Giải thích . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+8.7 Code NumPy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+8.8 Code OpenCV . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+8.9 Câu hỏi sau phần này . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+8.10 Bài tập nâng cao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+8.11 Bài tập tổng hợp nhỏ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+9 Bài toán 4: Dò biên bằng gray , Y, XYZ và Lab 15
+9.1 Mục đích . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+9.2 Pipelines . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+9.3 Giải thích trình tự . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+9.4 Code cơ sở . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+9.5 Code áp dụng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+9.6 Code OpenCV đối chiếu . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+9.7 Bộ ảnh synthetic gợi ý . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+9.8 Ví dụ synthetic: hidden shape . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+9.9 Câu hỏi sau phần này . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+9.10 Bài tập nâng cao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+9.11 Bài tập tổng hợp nhỏ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+10 Bài toán 5: Phân đoạn ảnh trong XYZ và Lab 18
+10.1 Mục đích . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+10.2 Pipeline 1: K-means trên XYZ . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+10.3 Pipeline 2: K-means trên Lab . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+10.4 Giải thích trình tự . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+10.5 Code NumPy/Scikit-learn . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+10.6 Áp dụng trên XYZ và Lab . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+10.7 Mở rộng: Thêm tọa độ không gian . . . . . . . . . . . . . . . . . . . . . . . 19
+10.8 Code mở rộng . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+10.9 Câu hỏi sau phần này . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+10.10Bài tập nâng cao . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+10.11Bài tập tổng hợp nhỏ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+11 Phần minh họa trực quan bắt buộc 20
+11.1 Bộ ảnh synthetic đề xuất . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+11.2 Yêu cầu trình bày với mỗi ảnh synthetic . . . . . . . . . . . . . . . . . . . . 20
+2
+
+12 Bài tập tổng hợp cuối bài 21
+12.1 Bài tổng hợp 1: So sánh toàn diện các không gian màu . . . . . . . . . . . . 21
+12.2 Bài tổng hợp 2: Bộ dữ liệu ảnh synthetic giải thích failure modes . . . . . . 21
+12.3 Bài tổng hợp 3: Ứng dụng hoàn chỉnh mức mini-project . . . . . . . . . . . . 21
+13 Kết luận 23
+3
+
+1 Giới thiệu chung
+T rong các bài thực hành trước, sinh viên đã làm quen với các thao tác xử lý ảnh trên ảnh
+đa cấp xám: histogram, cân bằng histogram, phân ngưỡng, lọc nhiễu, dò biên và phân đoạn.
+Khi chuyển sang ảnh màu, bài toán trở nên phong phú hơn nhưng cũng phức tạp hơn. Một
+điểm ảnh không còn chỉ là một giá trị vô hướng I(x, y), mà là một véc-tơ màu:
+I(x, y) = [c1(x, y), c2(x, y), c3(x, y)]T.
+V ấn đề cốt lõi không chỉ là xử lý gì , mà còn là xử lý trong hệ màu nào . Hai thao tác hoàn
+toàn giống nhau về mặt thuật toán nhưng thực hiện trong hai không gian màu khác nhau
+có thể tạo ra kết quả rất khác nhau.
+Bài thực hành này được thiết kế với trọng tâm là hai hệ màu CIE:
+• CIE XYZ : hệ màu chuẩn, có ý nghĩa nền tảng về mặt đo lường màu và tách tương
+đối rõ thông tin độ chói Y với thông tin màu.
+• CIE Lab : hệ màu gần đều theo cảm nhận thị giác hơn, phù hợp để đo khoảng cách
+màu và xây dựng các phép so sánh dựa trên độ khác biệt màu sắc.
+RGB và HSV vẫn được nhắc lại trong tài liệu này , nhưng chủ yếu đóng vai trò đối
+chứng để so sánh. Mục tiêu của bài thực hành không phải là lặp lại các thao tác đã học
+với RGB/HSV, mà là giúp sinh viên hiểu tại sao việc chuyển sang CIE XYZ/Lab có
+thể làm thay đổi bản chất của bài toán .
+2 Mục tiêu học tập
+Sau khi hoàn thành bài thực hành, sinh viên cần đạt được các năng lực sau:
+1. Giải thích được ý nghĩa của các hệ màu RGB, HSV, CIE XYZ, CIE Lab.
+2. T rình bày được các công thức chuyển đổi RGB → XYZ→ Lab.
+3. Hiểu vai trò của white reference point (Xn, Yn, Zn)trong chuyển đổi sang Lab.
+4. Phân tích được sự khác nhau giữa:
+• xử lý trên ảnh xám,
+• xử lý trên kênh độ chói Y,
+• xử lý dựa trên khoảng cách màu trong XYZ,
+• xử lý dựa trên khoảng cách màu trong Lab.
+5. Cài đặt được các pipeline xử lý ảnh cơ bản trong CIE XYZ và CIE Lab:
+• chuyển đổi màu,
+• phân ngưỡng,
+• khử nhiễu,
+• dò biên,
+• phân đoạn.
+6. Tự đề xuất được một pipeline ứng dụng hoàn chỉnh dùng đặc trưng màu.
+4
+
+3 Chuẩn bị trước buổi thực hành
+3.1 Kiến thức cần có
+Sinh viên cần nắm các nội dung sau từ những buổi trước:
+• Biểu diễn ảnh số; ảnh xám và ảnh màu.
+• Histogram, thresholding, bộ lọc trung bình, Gaussian, median.
+• Gradient, Sobel, Canny , khái niệm contour.
+• Phân đoạn theo vùng, phân đoạn theo cụm K-means.
+3.2 Môi trường phần mềm
+Khuyến nghị sử dụng Python với các thư viện:
+• numpy
+• opencv-python
+• matplotlib
+• scikit-learn
+• scipy
+3.3 Dữ liệu gợi ý
+Nên chuẩn bị các ảnh thuộc nhiều kiểu khác nhau:
+• Cảnh ngoài trời có cây xanh, bầu trời, đường giao thông.
+• Ảnh trái cây hoặc vật thể nhiều màu.
+• Ảnh có bóng đổ, ánh sáng không đều.
+• Ảnh có vật thể khác màu nhưng gần cùng độ sáng.
+4 Ôn tập các hệ màu cần dùng
+4.1 RGB
+RGB là hệ màu gắn với thiết bị hiển thị. Mỗi pixel được mô tả bằng ba kênh đỏ, lục, lam:
+IRGB(x, y) = (R, G, B ).
+Ưu điểm của RGB là trực tiếp, phổ biến, dễ lưu trữ. T uy nhiên RGB không tách biệt rõ
+thông tin độ sáng và màu sắc ; vì vậy nhiều thuật toán xử lý ảnh hoạt động kém ổn định
+nếu áp dụng trực tiếp trên ba kênh RGB.
+5
+
+4.2 HSV
+HSV biểu diễn màu theo:
+•H: Hue (sắc màu)
+•S: Saturation (độ bão hòa)
+•V: V alue (độ sáng)
+HSV rất thuận tiện cho các bài toán phân ngưỡng theo màu thuần, chẳng hạn phát hiện
+vùng cây xanh hay vùng biển báo có màu đặc trưng. T uy nhiên HSV vẫn chưa phải là không
+gian gần đều theo cảm nhận màu, và góc Hue có thể không ổn định khi độ bão hòa thấp.
+4.3 CIE XYZ
+CIE XYZ là một hệ màu chuẩn hóa theo Ủy ban Quốc tế về Chiếu sáng (CIE), được xây
+dựng dựa trên các thí nghiệm trộn màu. V ới RGB tuyến tính, phép đổi sang XYZ có dạng:
+
+X
+Y
+Z
+=
+0.4124564 0 .3575761 0 .1804375
+0.2126729 0 .7151522 0 .0721750
+0.0193339 0 .1191920 0 .9503041
+
+Rl
+Gl
+Bl
+.
+T rong nhiều ngữ cảnh xử lý ảnh:
+•Y thường được hiểu như thành phần độ chói tương đối.
+•X, Z mang thêm thông tin màu.
+4.4 CIE Lab
+Lab được định nghĩa từ XYZ và một điểm trắng tham chiếu (Xn, Yn, Zn). Không gian này
+được thiết kế sao cho khoảng cách Euclid trong Lab gần hơn với cảm nhận khác biệt màu
+của con người.
+Đặt
+x=X
+Xn, y =Y
+Yn, z =Z
+Zn,
+và
+f(t) ={
+t1/3, t > δ3
+t
+3δ2+4
+29, t≤δ3, δ =6
+29.
+Khi đó:
+L∗= 116 f(y)−16, a∗= 500( f(x)−f(y)), b∗= 200( f(y)−f(z)).
+Khoảng cách màu phổ biến trong Lab:
+∆Eab=√
+(∆L∗)2+ (∆ a∗)2+ (∆ b∗)2.
+5 Các hàm chuyển đổi màu cốt lõi
+5.1 RGB sang XYZ bằng NumPy
+Giải thích Ảnh RGB thông thường là ảnh gamma-compressed (ví dụ sRGB), nên trước
+tiên cần tuyến tính hóa rồi mới nhân ma trận đổi màu. Nếu bỏ qua bước tuyến tính hóa,
+kết quả XYZ sẽ sai về mặt vật lý và cũng làm các thí nghiệm phía sau kém ổn định.
+6
+
+Code minh họa
+import numpyasnp
+defrgb_to_xyz(img_rgb: np.ndarray) -> np.ndarray:
+img = img_rgb.astype(np.float32) / 255.0
+mask = img <= 0.04045
+img_lin = np.where(mask, img / 12.92,
+((img + 0.055) / 1.055) ** 2.4)
+M = np.array([
+[0.4124564, 0.3575761, 0.1804375],
+[0.2126729, 0.7151522, 0.0721750],
+[0.0193339, 0.1191920, 0.9503041]
+], dtype=np.float32)
+h, w, _ = img_lin.shape
+xyz = img_lin.reshape(-1, 3) @ M.T
+return xyz.reshape(h, w, 3)
+Code OpenCV
+import cv2
+img_bgr = cv2.imread( "input.jpg")
+xyz = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2XYZ)
+5.2 XYZ sang Lab bằng NumPy
+Giải thích Khi đổi XYZ sang Lab, phải chọn white reference point . T rong tài liệu này , sử
+dụng D65:
+(Xn, Yn, Zn) = (95 .047,100.000,108.883).
+Nếu ảnh XYZ đang ở thang [0,1] theo kiểu relative tristimulus , ta cần nhất quán về hệ số
+trước khi chuẩn hóa.
+Code minh họa
+defxyz_to_lab(xyz: np.ndarray,
+Xn:float= 95.047,
+Yn:float= 100.000,
+Zn:float= 108.883) -> np.ndarray:
+xyz = xyz.astype(np.float32) * 100.0
+x = xyz[:, :, 0] / Xn
+y = xyz[:, :, 1] / Yn
+z = xyz[:, :, 2] / Zn
+delta = 6 / 29
+deff(t):
+return np.where(t > delta**3,
+np.cbrt(t),
+7
+
+t / (3 * delta**2) + 4 / 29)
+fx = f(x)
+fy = f(y)
+fz = f(z)
+L = 116 * fy - 16
+a = 500 * (fx - fy)
+b = 200 * (fy - fz)
+return np.stack([L, a, b], axis=2)
+Code OpenCV
+lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+5.3 Khoảng cách màu trong XYZ và Lab
+V ới hai pixel p, q , định nghĩa:
+dXY Z(p, q) =√
+(Xp−Xq)2+ (Yp−Yq)2+ (Zp−Zq)2,
+dLab(p, q) =√
+(Lp−Lq)2+ (ap−aq)2+ (bp−bq)2.
+T rong Lab, khoảng cách này thường gần với cảm nhận khác biệt màu hơn. Đây là nền
+tảng cho các bài toán dò biên màu và phân đoạn theo màu.
+6 Bài toán 1: Chuyển đổi và trực quan hóa các hệ màu
+6.1 Mục đích
+Mục đích của phần này là để sinh viên:
+• kiểm chứng quá trình chuyển đổi RGB → XYZ→ Lab;
+• trực quan hóa từng kênh màu;
+• thấy được rằng mỗi hệ màu làm lộ ra một cấu trúc thông tin khác nhau của ảnh.
+6.2 Pipeline
+Ảnh RGB đầu vàoĐổi sang
+XYZChuẩn hóa /
+hiển thị X,Y,Z
+Đổi sang
+LabHiển thị
+L,a,b
+8
+
+6.3 T rình tự thực hiện
+1. Đọc ảnh RGB gốc.
+2. Chuyển sang XYZ bằng hàm tự cài đặt.
+3. Tách và hiển thị ba kênh X, Y, Z .
+4. Chuyển từ XYZ sang Lab.
+5. Tách và hiển thị L∗, a∗, b∗.
+6. So sánh với kết quả từ OpenCV.
+6.4 Code NumPy và hiển thị
+import matplotlib.pyplot asplt
+img_rgb = cv2.cvtColor(cv2.imread( "input.jpg"), cv2.COLOR_BGR2RGB)
+xyz = rgb_to_xyz(img_rgb)
+lab = xyz_to_lab(xyz)
+fig, axes = plt.subplots(2, 4, figsize=(14, 7))
+axes[0,0].imshow(img_rgb)
+axes[0,0].set_title( "RGB")
+axes[0,0].axis( "off")
+fori, name inenumerate (["X","Y","Z"]):
+channel = xyz[:, :, i]
+channel_norm = (channel - channel. min()) / (channel. max() - channel
+.min() + 1e-8)
+axes[0, i+1].imshow(channel_norm, cmap= "gray")
+axes[0, i+1].set_title(name)
+axes[0, i+1].axis( "off")
+fori, name inenumerate (["L*","a*","b*"]):
+channel = lab[:, :, i]
+channel_norm = (channel - channel. min()) / (channel. max() - channel
+.min() + 1e-8)
+axes[1, i+1].imshow(channel_norm, cmap= "gray")
+axes[1, i+1].set_title(name)
+axes[1, i+1].axis( "off")
+axes[1,0].axis( "off")
+plt.tight_layout()
+plt.show()
+6.5 Câu hỏi sau phần này
+1. T ại sao cùng một ảnh nhưng các kênh X, Y, Z lại cho cảm giác rất khác nhau?
+9
+
+2. T rong Lab, kênh nào gần với độ sáng? Kênh nào gần với đối lập đỏ–lục? Kênh nào gần
+với đối lập vàng–lam?
+3. Nếu thay điểm trắng D65 bằng D50, kết quả Lab thay đổi như thế nào?
+6.6 Bài tập nâng cao
+1. Viết hàm so sánh chênh lệch giữa Lab tự cài đặt và Lab từ OpenCV.
+2. Thử với 3 ảnh khác nhau: ảnh ngoài trời, ảnh vật thể nhiều màu, ảnh có bóng đổ. Nhận
+xét kênh nào ổn định nhất với thay đổi ánh sáng.
+3. T ạo biểu đồ histogram cho các kênh Y,L∗,a∗,b∗và giải thích hình dạng của chúng.
+7 Bài toán 2: Phân ngưỡng trong các hệ màu
+7.1 Mục đích
+Phân ngưỡng trên ảnh màu có nhiều cách:
+• phân ngưỡng trên ảnh xám;
+• phân ngưỡng trên một kênh độ chói;
+• phân ngưỡng trên một hoặc nhiều kênh màu;
+• phân ngưỡng theo khoảng cách màu đến một màu đích.
+Phần này giúp sinh viên thấy rằng trong nhiều trường hợp, dùng Y hoặc dùng khoảng cách
+màu trong Lab ổn định hơn so với threshold trực tiếp trên RGB.
+7.2 Pipeline 1: Threshold theo kênh Y trong XYZ
+RGB XYZ Lấy kênh Y Threshold Mask
+7.3 Giải thích trình tự
+1. Chuyển ảnh RGB sang XYZ.
+2. Lấy kênh Y.
+3. Chọn ngưỡng Tđể tách các vùng sáng/tối.
+4. Hậu xử lý mask bằng morphology nếu cần.
+7.4 Code NumPy
+defthreshold_on_Y(img_rgb, T=0.4):
+xyz = rgb_to_xyz(img_rgb)
+Y = xyz[:, :, 1]
+mask = (Y > T).astype(np.uint8) * 255
+return Y, mask
+10
+
+7.5 Code OpenCV
+img_bgr = cv2.imread( "input.jpg")
+xyz = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2XYZ)
+Y = xyz[:, :, 1]
+_, mask = cv2.threshold(Y, 100, 255, cv2.THRESH_BINARY)
+7.6 Pipeline 2: Threshold theo khoảng cách màu trong Lab
+RGB XYZ LabChọn màu đích
+(L0, a0, b0)Tính ∆EThreshold
+khoảng cách
+7.7 Giải thích trình tự
+1. Chuyển ảnh sang Lab.
+2. Chọn một màu đích (L0, a0, b0), có thể lấy từ một pixel mẫu hoặc trung bình của một
+vùng mẫu.
+3. V ới mỗi pixel, tính khoảng cách ∆E đến màu đích.
+4. Threshold trên bản đồ khoảng cách để tách vùng có màu gần màu mục tiêu.
+7.8 Code NumPy
+deflab_color_distance_segmentation(img_rgb, target_lab, tau=15.0):
+xyz = rgb_to_xyz(img_rgb)
+lab = xyz_to_lab(xyz)
+diff = lab - target_lab.reshape(1, 1, 3)
+dist = np.sqrt(np. sum(diff**2, axis=2))
+mask = (dist < tau).astype(np.uint8) * 255
+return lab, dist, mask
+7.9 Code OpenCV
+img_bgr = cv2.imread( "input.jpg")
+lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
+target = np.array([180, 120, 150], dtype=np.float32)
+dist = np.sqrt(np. sum((lab - target.reshape(1,1,3))**2, axis=2))
+mask = (dist < 20).astype(np.uint8) * 255
+11
+
+7.10 Ảnh minh họa phù hợp
+• Ảnh cây xanh trong sân trường: phù hợp cho threshold theo màu.
+• Ảnh trái cây cùng nền tương đối đơn giản: phù hợp cho threshold theo khoảng cách
+màu.
+• Ảnh có bóng đổ: phù hợp để so sánh threshold trên gray , Y, HSV và Lab.
+7.11 Câu hỏi sau phần này
+1. Khi nào threshold trên Y đủ tốt? Khi nào không đủ?
+2. T ại sao threshold theo khoảng cách màu trong Lab thường tốt hơn threshold riêng lẻ
+từng kênh RGB?
+3. Nếu đối tượng có nhiều mức sáng nhưng gần như cùng màu, nên chọn threshold trên
+Y hay threshold theo ∆E?
+7.12 Bài tập nâng cao
+1. Chọn một ảnh có vật thể màu đỏ hoặc xanh lá rõ ràng. Thực hiện ba cách:
+• threshold trên ảnh xám,
+• threshold trên Y,
+• threshold theo ∆E trong Lab.
+So sánh kết quả bằng hình ảnh side-by-side và nhận xét.
+2. Viết chương trình cho phép người dùng bấm chuột lấy màu mẫu trên ảnh rồi tự động
+sinh mask theo ∆E.
+3. Mở rộng: kết hợp threshold theo ∆E với phép mở/đóng hình thái học để làm sạch
+mask.
+7.13 Bài tập tổng hợp nhỏ
+Thiết kế một pipeline phát hiện vùng cây xanh trong ảnh ngoài trời:
+• đầu vào: một ảnh RGB có cây và nền phức tạp;
+• đầu ra: mask vùng cây xanh;
+• yêu cầu: so sánh ít nhất ba chiến lược threshold khác nhau, trong đó bắt buộc có một
+chiến lược dùng Lab.
+8 Bài toán 3: Khử nhiễu trong CIE XYZ và Lab
+8.1 Mục đích
+Khử nhiễu trên ảnh màu không nên lúc nào cũng làm trực tiếp trên RGB. Nếu lọc đồng
+đều cả ba kênh RGB, màu có thể bị loang hoặc lệch. Một chiến lược tốt là tách thành phần
+độ chói và thành phần màu, rồi chọn cách lọc phù hợp.
+12
+
+8.2 Pipeline 1: Lọc trên kênh Y của XYZ
+RGB XYZ LấyY Median/Gaussian Ghép lại XYZ
+Hiển thị kết quả
+8.3 Giải thích trình tự
+1. Chuyển RGB sang XYZ.
+2. LấyY và áp dụng bộ lọc median hoặc Gaussian.
+3. Giữ nguyên X, Z nếu muốn bảo toàn màu tương đối.
+4. Nếu cần, chuyển ngược về RGB để trực quan hóa.
+8.4 Code NumPy
+fromscipy.ndimage import median_filter, gaussian_filter
+defdenoise_on_Y(img_rgb, method= "median", ksize=3, sigma=1.0):
+xyz = rgb_to_xyz(img_rgb)
+Y = xyz[:, :, 1]
+ifmethod == "median":
+Yf = median_filter(Y, size=ksize)
+else:
+Yf = gaussian_filter(Y, sigma=sigma)
+xyz_f = xyz.copy()
+xyz_f[:, :, 1] = Yf
+return xyz, xyz_f
+8.5 Pipeline 2: Lọc trên L∗của Lab
+RGB XYZ Lab LọcL∗Giữa∗, b∗Kết quả
+8.6 Giải thích
+Nếu nhiễu chủ yếu xuất hiện như nhiễu cường độ, lọc trên L∗có thể giúp giảm nhiễu mà ít
+làm mất ranh giới màu hơn. T uy nhiên nếu nhiễu thực sự là nhiễu màu, chỉ lọc L∗sẽ chưa
+đủ.
+8.7 Code NumPy
+defdenoise_on_Lab_lightness(img_rgb, method= "median", ksize=3, sigma
+=1.0):
+xyz = rgb_to_xyz(img_rgb)
+13
+
+lab = xyz_to_lab(xyz)
+L = lab[:, :, 0]
+ifmethod == "median":
+Lf = median_filter(L, size=ksize)
+else:
+Lf = gaussian_filter(L, sigma=sigma)
+lab_f = lab.copy()
+lab_f[:, :, 0] = Lf
+return lab, lab_f
+8.8 Code OpenCV
+img_bgr = cv2.imread( "input.jpg")
+lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
+L, a, b = cv2.split(lab)
+L_f = cv2.medianBlur(L, 3)
+lab_f = cv2.merge([L_f, a, b])
+8.9 Câu hỏi sau phần này
+1. Vì sao lọc trên RGB có thể làm sai màu?
+2. Khi nào nên lọc chỉ kênh Y hoặc chỉ kênh L∗?
+3. Nếu ảnh bị nhiễu màu mạnh, chiến lược lọc nào cần xem xét thêm?
+8.10 Bài tập nâng cao
+1. Tự thêm nhiễu muối tiêu và nhiễu Gaussian vào ảnh. So sánh:
+• lọc trên RGB,
+• lọc trên Y,
+• lọc trên L∗.
+2. Đánh giá định tính bằng cách quan sát và định lượng bằng PSNR/SSIM nếu có.
+3. Kiểm tra xem sau khử nhiễu, bước threshold theo Lab ở bài toán trước có ổn định hơn
+hay không.
+8.11 Bài tập tổng hợp nhỏ
+Xây dựng pipeline tiền xử lý cho một ảnh ngoài trời có nhiễu và bóng đổ, sao cho kết quả
+cuối cùng hỗ trợ tốt cho bước phát hiện vùng màu ở Bài toán 2.
+14
+
+9 Bài toán 4: Dò biên bằng gray , Y, XYZ và Lab
+9.1 Mục đích
+Đây là phần trung tâm của bài thực hành. Mục tiêu là so sánh:
+• biên tính trên ảnh xám;
+• biên tính trên độ chói Y;
+• biên màu dựa trên khoảng cách trong XYZ;
+• biên màu dựa trên khoảng cách trong Lab.
+Phần này giúp sinh viên thấy rõ rằng có những biên không tồn tại trong độ sáng , nhưng
+vẫn tồn tại rất rõ trong không gian màu.
+9.2 Pipelines
+Pipeline 1: Gray gradient
+RGB Gray Gradient Biên
+Pipeline 2: Gradient trên Y
+RGB XYZ LấyY Gradient Biên
+Pipeline 3: Gradient màu trong XYZ
+RGB XYZTính sai phân
+véc-tơ màuChuẩn L2 Biên màu
+Pipeline 4: Gradient màu trong Lab
+RGB XYZ LabTính ∆E
+lân cậnBiên màu
+9.3 Giải thích trình tự
+Gray Ảnh màu được nén thành một trường vô hướng. Biên đo được chỉ là biên về độ
+sáng. Những vùng khác màu nhưng cùng độ sáng có thể bị bỏ sót.
+Y trong XYZ Đây là một cách đúng đắn hơn so với gray nếu muốn xem xét độ chói. T uy
+nhiên nó vẫn không phát hiện được các biên màu thuần túy nếu hai vùng có Y gần nhau.
+Khoảng cách màu trong XYZ T a xem mỗi pixel như một véc-tơ màu (X, Y, Z ). Sự
+thay đổi giữa hai pixel lân cận được đo bằng chuẩn Euclid:
+dXY Z =√
+(∆X)2+ (∆ Y)2+ (∆ Z)2.
+Phương pháp này phát hiện được cả biên độ sáng lẫn biên màu.
+15
+
+Khoảng cách màu trong Lab Tương tự XYZ nhưng dùng véc-tơ (L∗, a∗, b∗). Vì Lab
+gần với cảm nhận hơn, nhiều biên màu quan trọng về mặt thị giác sẽ nổi bật hơn.
+9.4 Code cơ sở
+defrgb_to_gray(img_rgb):
+img = img_rgb.astype(np.float32) / 255.0
+r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+return 0.299 * r + 0.587 * g + 0.114 * b
+defgradient_magnitude_scalar(channel):
+gx = np.zeros_like(channel, dtype=np.float32)
+gy = np.zeros_like(channel, dtype=np.float32)
+gx[:, :-1] = channel[:, 1:] - channel[:, :-1]
+gy[:-1, :] = channel[1:, :] - channel[:-1, :]
+return np.sqrt(gx**2 + gy**2)
+defgradient_magnitude_vector(img3):
+dx = np.zeros_like(img3, dtype=np.float32)
+dy = np.zeros_like(img3, dtype=np.float32)
+dx[:, :-1, :] = img3[:, 1:, :] - img3[:, :-1, :]
+dy[:-1, :, :] = img3[1:, :, :] - img3[:-1, :, :]
+dx2 = np. sum(dx**2, axis=2)
+dy2 = np. sum(dy**2, axis=2)
+return np.sqrt(dx2 + dy2)
+9.5 Code áp dụng
+img_rgb = cv2.cvtColor(cv2.imread( "input.jpg"), cv2.COLOR_BGR2RGB)
+gray = rgb_to_gray(img_rgb)
+grad_gray = gradient_magnitude_scalar(gray)
+xyz = rgb_to_xyz(img_rgb)
+grad_Y = gradient_magnitude_scalar(xyz[:, :, 1])
+grad_xyz = gradient_magnitude_vector(xyz)
+lab = xyz_to_lab(xyz)
+grad_lab = gradient_magnitude_vector(lab)
+9.6 Code OpenCV đối chiếu
+gray_u8 = cv2.cvtColor(cv2.imread( "input.jpg"), cv2.COLOR_BGR2GRAY)
+edges_canny = cv2.Canny(gray_u8, 100, 200)
+16
+
+9.7 Bộ ảnh synthetic gợi ý
+Nên dùng ít nhất 4 ảnh synthetic:
+1. Isoluminant boundary : hai nửa ảnh khác màu nhưng gần cùng gray .
+2. Chromatic texture : checkerboard hai màu có độ chói gần nhau.
+3. Illumination gradient : nền có gradient sáng tối để thấy biên giả.
+4. Hidden shape : hình ẩn cùng mức gray với nền nhưng khác màu.
+9.8 Ví dụ synthetic: hidden shape
+defcreate_hidden_shape():
+h, w = 300, 300
+img = np.zeros((h, w, 3), dtype=np.uint8)
+background = np.array([0, 130, 0], dtype=np.uint8)
+object_color = np.array([255, 0, 0], dtype=np.uint8)
+img[:] = background
+cx, cy, r = w // 2, h // 2, 80
+yy, xx = np.mgrid[0:h, 0:w]
+mask = (xx - cx)**2 + (yy - cy)**2 < r**2
+img[mask] = object_color
+return img
+9.9 Câu hỏi sau phần này
+1. Vì sao gray gradient thất bại trong ảnh isoluminant?
+2.Y-gradient khác gray gradient ở điểm nào?
+3. T ại sao Lab gradient thường cho biên màu rõ hơn XYZ gradient?
+4. Có phải Lab luôn tốt hơn XYZ trong mọi tình huống không?
+9.10 Bài tập nâng cao
+1. Tự tạo một ảnh synthetic gồm 4 vùng:
+• hai vùng khác màu nhưng gần cùng gray;
+• hai vùng cùng màu nhưng khác độ sáng.
+Chạy bốn loại gradient và giải thích.
+2. Thay sai phân tiến bằng Sobel cho từng kênh, rồi xây dựng gradient màu trong XYZ
+và Lab.
+3. Dùng ngưỡng để nhị phân hóa các bản đồ gradient, rồi tìm contour. So sánh contour
+thu được từ gray , Y, XYZ, Lab.
+17
+
+9.11 Bài tập tổng hợp nhỏ
+Xây dựng một chương trình hiển thị so sánh side-by-side:
+• ảnh gốc,
+• gray gradient,
+•Y-gradient,
+• XYZ gradient,
+• Lab gradient,
+• contour trích ra từ mỗi phương pháp.
+Yêu cầu giải thích rõ trường hợp nào mỗi phương pháp thất bại.
+10 Bài toán 5: Phân đoạn ảnh trong XYZ và Lab
+10.1 Mục đích
+T rong phân đoạn màu, việc chọn hệ màu là quyết định quan trọng. Nếu hai vùng khác nhau
+về màu nhưng gần nhau về độ sáng, phân đoạn trên gray hoặc chỉ trên Y có thể thất bại.
+Dùng véc-tơ màu trong XYZ hoặc Lab thường cho kết quả tốt hơn.
+10.2 Pipeline 1: K-means trên XYZ
+RGB XYZT ạo vector
+đặc trưng [X, Y, Z ]K-means Label map
+10.3 Pipeline 2: K-means trên Lab
+RGB XYZ LabT ạo vector
+[L∗, a∗, b∗]K-means Label map
+10.4 Giải thích trình tự
+1. Chuyển ảnh sang hệ màu mong muốn.
+2. V ới mỗi pixel, trích véc-tơ đặc trưng màu.
+3. Chạy K-means với số cụm K xác định.
+4. Gán lại nhãn cho từng pixel và trực quan hóa kết quả.
+18
+
+10.5 Code NumPy/Scikit-learn
+fromsklearn.cluster import KMeans
+defkmeans_segmentation(feature_img, n_clusters=4):
+h, w, c = feature_img.shape
+X = feature_img.reshape(-1, c)
+kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=10)
+labels = kmeans.fit_predict(X)
+return labels.reshape(h, w), kmeans.cluster_centers_
+10.6 Áp dụng trên XYZ và Lab
+xyz = rgb_to_xyz(img_rgb)
+lab = xyz_to_lab(xyz)
+labels_xyz, centers_xyz = kmeans_segmentation(xyz, n_clusters=4)
+labels_lab, centers_lab = kmeans_segmentation(lab, n_clusters=4)
+10.7 Mở rộng: Thêm tọa độ không gian
+Có thể mở rộng vector đặc trưng thành:
+[X, Y, Z, λx, λy ] hoặc [L∗, a∗, b∗, λx, λy ]
+để hạn chế việc các pixel cùng màu nhưng ở xa nhau bị gộp vào một vùng.
+10.8 Code mở rộng
+defmake_feature_with_xy(feature_img, lam=0.01):
+h, w, c = feature_img.shape
+yy, xx = np.mgrid[0:h, 0:w]
+xx = xx.astype(np.float32) * lam
+yy = yy.astype(np.float32) * lam
+return np.dstack([feature_img, xx, yy])
+10.9 Câu hỏi sau phần này
+1. Khi nào K-means trên Lab tốt hơn K-means trên RGB?
+2. T ại sao thêm tọa độ (x, y)có thể làm phân đoạn ổn định hơn?
+3. V ới ảnh có bóng đổ mạnh, Lab có lợi gì so với RGB?
+19
+
+10.10 Bài tập nâng cao
+1. So sánh K-means trên RGB, HSV, XYZ, Lab với cùng một ảnh. Dùng cùng K và trình
+bày 4 ảnh kết quả cạnh nhau.
+2. Thử thêm tọa độ (x, y)vào đặc trưng trên Lab. Nhận xét sự khác biệt.
+3. T rên một ảnh trái cây nhiều màu, thử K= 2,3,4,5. Giải thích cách chọn K hợp lý .
+10.11 Bài tập tổng hợp nhỏ
+Xây dựng một pipeline phân đoạn đối tượng màu trong ảnh có nền phức tạp:
+• đầu vào: ảnh RGB;
+• đầu ra: mask vùng đối tượng;
+• bắt buộc so sánh ít nhất hai không gian màu, trong đó có Lab;
+• yêu cầu trình bày:
+– cách chọn đặc trưng,
+– số cụm,
+– hậu xử lý mask,
+– nhận xét ưu/nhược điểm.
+11 Phần minh họa trực quan bắt buộc
+11.1 Bộ ảnh synthetic đề xuất
+Để bài thực hành có tính trực quan mạnh, yêu cầu sinh viên dùng ít nhất 3 trong 4 ảnh
+synthetic sau:
+1. Isoluminant boundary : làm gray thất bại.
+2. Chromatic texture : làm Y-based methods thất bại.
+3. Illumination gradient : làm RGB distance dễ tạo biên giả.
+4. Hidden shape : làm nổi bật ưu thế của Lab color gradient.
+11.2 Yêu cầu trình bày với mỗi ảnh synthetic
+V ới mỗi ảnh synthetic được chọn, sinh viên phải:
+1. mô tả ý tưởng thiết kế ảnh;
+2. dự đoán phương pháp nào sẽ thất bại trước khi chạy;
+3. chạy các pipeline tương ứng;
+4. hiển thị kết quả cạnh nhau;
+5. giải thích bằng lý thuyết hệ màu vì sao kết quả như vậy .
+20
+
+12 Bài tập tổng hợp cuối bài
+12.1 Bài tổng hợp 1: So sánh toàn diện các không gian màu
+Chọn một ảnh thật có ít nhất:
+• một vùng cây xanh hoặc vật thể màu đặc trưng,
+• một vùng bóng đổ hoặc thay đổi chiếu sáng,
+• một biên màu tương đối yếu về độ sáng.
+Thực hiện:
+1. chuyển đổi sang RGB, HSV, XYZ, Lab;
+2. phân ngưỡng một đối tượng hoặc một loại màu;
+3. dò biên bằng ít nhất 4 cách;
+4. phân đoạn bằng K-means trên ít nhất 3 không gian màu;
+5. so sánh kết quả bằng hình ảnh và nhận xét.
+Yêu cầu báo cáo phải chỉ ra cụ thể:
+• trường hợp nào gray hoặc Y không đủ;
+• trường hợp nào khoảng cách màu trong Lab tỏ ra có lợi;
+• hạn chế của từng phương pháp.
+12.2 Bài tổng hợp 2: Bộ dữ liệu ảnh synthetic giải thích failure
+modes
+Sinh viên tự tạo một bộ ít nhất 3 ảnh synthetic nhằm minh họa 3 failure mode khác nhau
+của các phương pháp xử lý ảnh màu. V ới mỗi ảnh cần nêu:
+• công thức hoặc ý tưởng tạo ảnh;
+• phương pháp dự đoán sẽ thất bại;
+• minh họa kết quả thực nghiệm;
+• giải thích.
+12.3 Bài tổng hợp 3: Ứng dụng hoàn chỉnh mức mini-project
+Đề tài gợi ý Xây dựng một hệ thống phát hiện đối tượng theo màu trong ảnh thật. Có
+thể chọn một trong các hướng:
+• phát hiện trái cây chín;
+• phát hiện biển báo giao thông màu nổi bật;
+• phát hiện vùng cây xanh trong ảnh ngoài trời;
+• phát hiện vật thể mục tiêu theo màu do sinh viên tự chọn.
+21
+
+Yêu cầu bắt buộc
+1. T rình bày mục tiêu bài toán và loại dữ liệu đầu vào.
+2. Thiết kế pipeline xử lý hoàn chỉnh, ít nhất gồm:
+• đọc ảnh,
+• chuyển đổi màu,
+• khử nhiễu hoặc chuẩn hóa nếu cần,
+• tách vùng mục tiêu bằng threshold hoặc khoảng cách màu,
+• hậu xử lý bằng morphology ,
+• contour hoặc bounding box.
+3. So sánh ít nhất hai phương án, trong đó có:
+• một phương án dùng XYZ hoặc Y,
+• một phương án dùng Lab.
+4. T rình bày rõ đầu vào, đầu ra, và các trường hợp thành công/thất bại.
+5. Có phần phân tích vì sao lựa chọn không gian màu đó là hợp lý .
+Gợi ý pipeline cho mini-project
+Ảnh RGB XYZ / LabKhử nhiễu
+nếu cầnThreshold hoặc
+khoảng cách màu
+Morphology
+Contour /
+Bounding box
+Kết quả
+Gợi ý code khung
+img_rgb = cv2.cvtColor(cv2.imread( "input.jpg"), cv2.COLOR_BGR2RGB)
+#Option A:XYZ
+xyz = rgb_to_xyz(img_rgb)
+Y = xyz[:, :, 1]
+mask_xyz = (Y > 0.45).astype(np.uint8) * 255
+#Option B:Labdistance
+xyz = rgb_to_xyz(img_rgb)
+lab = xyz_to_lab(xyz)
+target_lab = np.array([60.0, -40.0, 35.0], dtype=np.float32) #víụd
+22
+
+dist = np.sqrt(np. sum((lab - target_lab.reshape(1,1,3))**2, axis=2))
+mask_lab = (dist < 18).astype(np.uint8) * 255
+kernel = np.ones((5,5), np.uint8)
+mask_lab = cv2.morphologyEx(mask_lab, cv2.MORPH_OPEN, kernel)
+mask_lab = cv2.morphologyEx(mask_lab, cv2.MORPH_CLOSE, kernel)
+contours, _ = cv2.findContours(mask_lab, cv2.RETR_EXTERNAL, cv2.
+CHAIN_APPROX_SIMPLE)
+Những gì cần có trong báo cáo mini-project
+• mô tả bộ ảnh;
+• sơ đồ pipeline;
+• ít nhất 3 ví dụ thành công;
+• ít nhất 2 ví dụ thất bại hoặc khó;
+• so sánh giữa hai cách làm;
+• kết luận: không gian màu nào phù hợp hơn và vì sao.
+13 Kết luận
+Bài thực hành này nhằm giúp sinh viên đi từ một quan điểm quen thuộc — xử lý ảnh như
+một bài toán trên ảnh xám — sang một quan điểm tổng quát hơn: ảnh màu là một trường
+véc-tơ, và việc chọn không gian màu có thể thay đổi hoàn toàn hiệu quả của thuật toán.
+Những kết luận cốt lõi cần rút ra là:
+• Gray phù hợp khi biến thiên chủ yếu nằm ở độ sáng, nhưng thất bại với biên màu
+thuần.
+•Y trong XYZ là một lựa chọn tốt khi muốn xử lý theo độ chói, nhưng vẫn chưa đủ
+cho nhiều bài toán màu.
+• Khoảng cách màu trong XYZ cho phép phát hiện biến thiên màu tổng thể, nhưng
+chưa thật sự gần với cảm nhận.
+• Khoảng cách màu trong Lab thường phù hợp hơn cho các bài toán dựa trên sự
+khác biệt màu sắc cảm nhận được.
+Từ các kiến thức này , sinh viên có thể mở rộng sang nhiều hướng ứng dụng khác như:
+• phát hiện đối tượng theo màu,
+• phân đoạn theo màu cho ảnh y tế hoặc ảnh viễn thám,
+• tiền xử lý ảnh cho các mô hình học máy hoặc học sâu.
+23
+
+Gợi ý các bước thực hiện trong buổi thực hành
+Phần Nội dung
+Phần 1 Ôn tập hệ màu và chuyển đổi RGB → XYZ→ Lab
+Phần 2 T rực quan hóa các kênh màu, quan sát histogram
+Phần 3 Phân ngưỡng trên Y và theo ∆E trong Lab
+Phần 4 Khử nhiễu trên Y vàL∗
+Phần 5 Dò biên bằng gray , Y, XYZ, Lab
+Phần 6 Phân đoạn K-means trên XYZ và Lab
+Phần 7 Chạy bộ ảnh synthetic và phân tích failure modes
+Phần 8 Thực hiện một bài tổng hợp hoặc mini-project
+24
